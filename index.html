@@ -796,36 +796,37 @@
                 return;
             }
 
-            const photoFile = document.getElementById('edit-photo').files[0];
-            const cvFile = document.getElementById('edit-cv').files[0];
-            
-            let photoUrl = null;
-            let cvUrl = null;
+            try {
+                const photoFile = document.getElementById('edit-photo').files[0];
+                const cvFile = document.getElementById('edit-cv').files[0];
+                
+                const updateData = {
+                    name,
+                    position: document.getElementById('edit-position').value.trim(),
+                    phone: document.getElementById('edit-phone').value.trim(),
+                    email: document.getElementById('edit-email').value.trim(),
+                    experience: document.getElementById('edit-experience').value.trim(),
+                    pms: document.getElementById('edit-pms').value.trim(),
+                    availability: document.getElementById('edit-availability').value.trim()
+                };
 
-            if (photoFile) {
-                photoUrl = await uploadFile(photoFile, 'photos', name);
+                if (photoFile) {
+                    const photoUrl = await uploadFile(photoFile, 'photos', name);
+                    if (photoUrl) updateData.photoUrl = photoUrl;
+                }
+
+                if (cvFile) {
+                    const cvUrl = await uploadFile(cvFile, 'cvs', name);
+                    if (cvUrl) updateData.cvUrl = cvUrl;
+                }
+
+                await updateDoc(doc(db, "candidates", docId), updateData);
+                alert('Candidate updated successfully!');
+                closeEditModal();
+            } catch (error) {
+                console.error('Error updating candidate:', error);
+                alert('Error updating candidate. Please try again.');
             }
-
-            if (cvFile) {
-                cvUrl = await uploadFile(cvFile, 'cvs', name);
-            }
-
-            const updateData = {
-                name,
-                position: document.getElementById('edit-position').value.trim(),
-                phone: document.getElementById('edit-phone').value.trim(),
-                email: document.getElementById('edit-email').value.trim(),
-                experience: document.getElementById('edit-experience').value.trim(),
-                pms: document.getElementById('edit-pms').value.trim(),
-                availability: document.getElementById('edit-availability').value.trim()
-            };
-
-            if (photoUrl) updateData.photoUrl = photoUrl;
-            if (cvUrl) updateData.cvUrl = cvUrl;
-
-            await updateDoc(doc(db, "candidates", docId), updateData);
-
-            closeEditModal();
         };
 
         window.closeEditModal = function() {
