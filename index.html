@@ -765,6 +765,20 @@
                         <input type="text" id="edit-availability" value="${candidate.availability || ''}">
                     </div>
                 </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Upload New Profile Picture (JPG/PNG)</label>
+                        <input type="file" id="edit-photo" accept=".jpg,.jpeg,.png">
+                        ${candidate.photoUrl ? `<small style="color: #999; margin-top: 6px;">Current photo exists - upload new one to replace</small>` : ''}
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Upload New CV (PDF)</label>
+                        <input type="file" id="edit-cv" accept=".pdf">
+                        ${candidate.cvUrl ? `<small style="color: #999; margin-top: 6px;">Current CV exists - upload new one to replace</small>` : ''}
+                    </div>
+                </div>
                 <div class="modal-buttons">
                     <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
                     <button class="btn-primary" onclick="saveEditedCandidate(${candidateId}, '${candidate.docId}')">Save Changes</button>
@@ -782,7 +796,21 @@
                 return;
             }
 
-            await updateDoc(doc(db, "candidates", docId), {
+            const photoFile = document.getElementById('edit-photo').files[0];
+            const cvFile = document.getElementById('edit-cv').files[0];
+            
+            let photoUrl = null;
+            let cvUrl = null;
+
+            if (photoFile) {
+                photoUrl = await uploadFile(photoFile, 'photos', name);
+            }
+
+            if (cvFile) {
+                cvUrl = await uploadFile(cvFile, 'cvs', name);
+            }
+
+            const updateData = {
                 name,
                 position: document.getElementById('edit-position').value.trim(),
                 phone: document.getElementById('edit-phone').value.trim(),
@@ -790,7 +818,12 @@
                 experience: document.getElementById('edit-experience').value.trim(),
                 pms: document.getElementById('edit-pms').value.trim(),
                 availability: document.getElementById('edit-availability').value.trim()
-            });
+            };
+
+            if (photoUrl) updateData.photoUrl = photoUrl;
+            if (cvUrl) updateData.cvUrl = cvUrl;
+
+            await updateDoc(doc(db, "candidates", docId), updateData);
 
             closeEditModal();
         };
