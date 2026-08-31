@@ -138,13 +138,21 @@
                 <div class="form-row full">
                     <div class="form-group">
                         <label>Profile Picture (JPG/PNG)</label>
-                        <input type="file" id="form-photo" accept=".jpg,.jpeg,.png">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="file" id="form-photo" accept=".jpg,.jpeg,.png" style="flex: 1;">
+                            <button type="button" onclick="document.getElementById('form-photo').value = ''" style="padding: 12px 16px; background: #f5e8e3; border: 1px solid #d4c5b9; border-radius: 2px; cursor: pointer; color: #9c523d; font-weight: 600;">Clear</button>
+                        </div>
+                        <small id="form-photo-name" style="color: #999; margin-top: 6px; display: none;">Selected: <span id="form-photo-text"></span></small>
                     </div>
                 </div>
                 <div class="form-row full">
                     <div class="form-group">
                         <label>CV (PDF)</label>
-                        <input type="file" id="form-cv" accept=".pdf">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="file" id="form-cv" accept=".pdf" style="flex: 1;">
+                            <button type="button" onclick="document.getElementById('form-cv').value = ''" style="padding: 12px 16px; background: #f5e8e3; border: 1px solid #d4c5b9; border-radius: 2px; cursor: pointer; color: #9c523d; font-weight: 600;">Clear</button>
+                        </div>
+                        <small id="form-cv-name" style="color: #999; margin-top: 6px; display: none;">Selected: <span id="form-cv-text"></span></small>
                     </div>
                 </div>
                 <button class="btn-add" onclick="addCandidate()">+ ADD CANDIDATE</button>
@@ -283,8 +291,16 @@
                 const photoFile = document.getElementById('form-photo').files[0];
                 const cvFile = document.getElementById('form-cv').files[0];
                 
-                let photoUrl = photoFile ? await uploadFile(photoFile, 'photos', name) : null;
-                let cvUrl = cvFile ? await uploadFile(cvFile, 'cvs', name) : null;
+                let photoUrl = null;
+                let cvUrl = null;
+
+                if (photoFile) {
+                    photoUrl = await uploadFile(photoFile, 'photos', name);
+                }
+
+                if (cvFile) {
+                    cvUrl = await uploadFile(cvFile, 'cvs', name);
+                }
 
                 await addDoc(collection(db, "candidates"), {
                     id: Math.max(...candidates.map(c => c.id), 0) + 1,
@@ -308,10 +324,12 @@
                 document.getElementById('form-availability').value = '';
                 document.getElementById('form-photo').value = '';
                 document.getElementById('form-cv').value = '';
+                document.getElementById('form-photo-name').style.display = 'none';
+                document.getElementById('form-cv-name').style.display = 'none';
                 alert('Candidate added successfully!');
             } catch (error) {
                 console.error('Error adding candidate:', error);
-                alert('Error adding candidate');
+                alert('Error adding candidate: ' + error.message);
             }
         };
 
@@ -370,13 +388,19 @@
                 <div class="form-row full">
                     <div class="form-group">
                         <label>Upload New Profile Picture (JPG/PNG)</label>
-                        <input type="file" id="edit-photo" accept=".jpg,.jpeg,.png">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="file" id="edit-photo" accept=".jpg,.jpeg,.png" style="flex: 1;">
+                            <button type="button" onclick="document.getElementById('edit-photo').value = ''" style="padding: 12px 16px; background: #f5e8e3; border: 1px solid #d4c5b9; border-radius: 2px; cursor: pointer; color: #9c523d; font-weight: 600;">Clear</button>
+                        </div>
                     </div>
                 </div>
                 <div class="form-row full">
                     <div class="form-group">
                         <label>Upload New CV (PDF)</label>
-                        <input type="file" id="edit-cv" accept=".pdf">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="file" id="edit-cv" accept=".pdf" style="flex: 1;">
+                            <button type="button" onclick="document.getElementById('edit-cv').value = ''" style="padding: 12px 16px; background: #f5e8e3; border: 1px solid #d4c5b9; border-radius: 2px; cursor: pointer; color: #9c523d; font-weight: 600;">Clear</button>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-buttons">
@@ -634,6 +658,26 @@
         };
 
         loadData();
+
+        // Show selected file names
+        document.addEventListener('change', function(e) {
+            if (e.target.id === 'form-photo' || e.target.id === 'edit-photo') {
+                const labelId = e.target.id === 'form-photo' ? 'form-photo-name' : null;
+                const textId = e.target.id === 'form-photo' ? 'form-photo-text' : null;
+                if (labelId && e.target.files[0]) {
+                    document.getElementById(textId).textContent = e.target.files[0].name;
+                    document.getElementById(labelId).style.display = 'block';
+                }
+            }
+            if (e.target.id === 'form-cv' || e.target.id === 'edit-cv') {
+                const labelId = e.target.id === 'form-cv' ? 'form-cv-name' : null;
+                const textId = e.target.id === 'form-cv' ? 'form-cv-text' : null;
+                if (labelId && e.target.files[0]) {
+                    document.getElementById(textId).textContent = e.target.files[0].name;
+                    document.getElementById(labelId).style.display = 'block';
+                }
+            }
+        });
     </script>
 </body>
 </html>
