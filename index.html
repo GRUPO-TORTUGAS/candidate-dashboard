@@ -66,14 +66,15 @@
         .btn-small:hover { background: #f0e8e0; border-color: #9c523d; color: #9c523d; }
         .btn-delete { padding: 6px 12px; background: #f5e8e3; border: 1px solid #d4c5b9; border-radius: 4px; cursor: pointer; font-size: 11px; color: #9c523d; transition: all 0.2s ease; }
         .btn-delete:hover { background: #e8d4c7; }
-        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow-y: auto; }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow: hidden; }
         .modal.active { display: flex; }
-        .modal-content { background: white; border-radius: 4px; max-width: 600px; width: 100%; padding: 40px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .modal-title { font-size: 28px; color: #9c523d; margin-bottom: 30px; border-bottom: 2px solid #e6cd87; padding-bottom: 16px; }
+        .modal-content { background: white; border-radius: 4px; max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-title { font-size: 28px; color: #9c523d; margin-bottom: 30px; border-bottom: 2px solid #e6cd87; padding: 40px 40px 16px 40px; padding-bottom: 16px; flex-shrink: 0; }
+        #ratingContent { flex: 1; overflow-y: auto; padding: 0 40px; }
+        #modalBody { overflow-y: auto; max-height: calc(90vh - 200px); padding: 0 40px; }
         .detail-section { margin-bottom: 24px; }
         .detail-label { font-size: 11px; color: #999; margin-bottom: 6px; letter-spacing: 1px; }
         .detail-value { font-size: 14px; color: #2c2c2c; }
-        .modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 30px; padding-top: 30px; border-top: 1px solid #f0e8e0; }
         .btn-secondary { padding: 12px; background: white; border: 2px solid #d4c5b9; border-radius: 4px; cursor: pointer; font-family: 'Bitter', serif; font-size: 13px; transition: all 0.3s ease; }
         .btn-secondary:hover { border-color: #9c523d; color: #9c523d; }
         .btn-primary { padding: 12px; background: #9c523d; color: white; border: 1px solid #9c523d; border-radius: 4px; cursor: pointer; font-family: 'Bitter', serif; font-size: 13px; transition: all 0.3s ease; }
@@ -85,7 +86,8 @@
         .rating-btn:hover { border-color: #e6cd87; }
         .rating-btn.active { background: #9c523d; color: white; border-color: #9c523d; }
         textarea { width: 100%; padding: 12px; border: 1px solid #d4c5b9; border-radius: 4px; font-family: 'Bitter', serif; font-size: 13px; resize: vertical; min-height: 80px; }
-        .close-btn { position: absolute; top: 20px; right: 20px; background: #f0e8e0; border: 1px solid #d4c5b9; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 18px; transition: all 0.2s ease; }
+        .modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 30px; padding: 30px 40px; border-top: 1px solid #f0e8e0; flex-shrink: 0; }
+        .close-btn { position: absolute; top: 20px; right: 20px; background: #f0e8e0; border: 1px solid #d4c5b9; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 18px; transition: all 0.2s ease; z-index: 1001; }
         .close-btn:hover { background: #e8d4c7; }
     </style>
 </head>
@@ -454,7 +456,7 @@
             competencies.forEach((comp, idx) => {
                 ratingHTML += `
                     <div class="rating-section">
-                        <label class="rating-label">${idx+1}. ${comp}</label>
+                        <label class="rating-label" style="display: flex; align-items: center; gap: 12px;"><span style="background: #9c523d; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">${idx+1}</span> ${comp}</label>
                         <div class="rating-buttons">
                             ${[1,2,3,4,5].map(num => `<button class="rating-btn" onclick="window.setRating('${comp}', ${num})">${num}</button>`).join('')}
                         </div>
