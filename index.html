@@ -262,10 +262,8 @@
                 
                 return url;
             } catch (error) {
-                console.error(`Error uploading to ${folder}:`, error);
-                console.error('Error code:', error.code);
-                console.error('Error message:', error.message);
-                alert(`Upload failed: ${error.message}`);
+                console.error(`Warning - file upload failed:`, error.message);
+                // Don't block - file upload is optional
                 return null;
             }
         }
@@ -308,25 +306,19 @@
                 const photoFile = document.getElementById('form-photo').files[0];
                 const cvFile = document.getElementById('form-cv').files[0];
                 
-                if (photoFile || cvFile) {
-                    alert('Uploading files... please wait');
-                }
-                
                 console.log('Adding candidate:', { name, photoFile: photoFile?.name, cvFile: cvFile?.name });
                 
                 let photoUrl = null;
                 let cvUrl = null;
 
                 if (photoFile) {
-                    console.log('Uploading photo...');
+                    console.log('Attempting to upload photo...');
                     photoUrl = await uploadFile(photoFile, 'photos', name);
-                    console.log('Photo URL result:', photoUrl);
                 }
 
                 if (cvFile) {
-                    console.log('Uploading CV...');
+                    console.log('Attempting to upload CV...');
                     cvUrl = await uploadFile(cvFile, 'cvs', name);
-                    console.log('CV URL result:', cvUrl);
                 }
 
                 console.log('Creating candidate document with:', { name, photoUrl, cvUrl });
@@ -355,10 +347,10 @@
                 document.getElementById('form-cv').value = '';
                 document.getElementById('form-photo-name').style.display = 'none';
                 document.getElementById('form-cv-name').style.display = 'none';
-                alert('Candidate added successfully!');
+                alert('✅ Candidate added successfully!');
             } catch (error) {
                 console.error('Error adding candidate:', error);
-                alert('Error adding candidate: ' + error.message);
+                alert('❌ Error: ' + error.message);
             }
         };
 
@@ -474,11 +466,11 @@
                 }
 
                 await updateDoc(doc(db, "candidates", docId), updateData);
-                alert('Candidate updated successfully!');
+                alert('✅ Candidate updated successfully!');
                 closeEditModal();
             } catch (error) {
                 console.error('Error updating:', error);
-                alert('Error updating candidate: ' + error.message);
+                alert('❌ Error: ' + error.message);
             }
         };
 
