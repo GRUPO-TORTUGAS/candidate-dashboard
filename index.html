@@ -239,16 +239,33 @@
         let currentCandidateId = null;
 
         async function uploadFile(file, folder, name) {
-            if (!file) return null;
+            if (!file) {
+                console.log('No file provided');
+                return null;
+            }
+            
+            console.log('Starting upload:', { file: file.name, folder, name });
+            
             try {
                 const ext = file.type.includes('pdf') ? 'pdf' : 'jpg';
                 const fileName = `${name}_${Date.now()}.${ext}`;
+                console.log('Upload filename:', fileName);
+                
                 const storageRef = ref(storage, `${folder}/${fileName}`);
-                await uploadBytes(storageRef, file);
-                return await getDownloadURL(storageRef);
+                console.log('Storage ref created:', storageRef.fullPath);
+                
+                const uploadTask = await uploadBytes(storageRef, file);
+                console.log('Upload complete:', uploadTask);
+                
+                const url = await getDownloadURL(storageRef);
+                console.log('Download URL:', url);
+                
+                return url;
             } catch (error) {
-                console.error(`Error uploading:`, error);
-                alert(`Error uploading file`);
+                console.error(`Error uploading to ${folder}:`, error);
+                console.error('Error code:', error.code);
+                console.error('Error message:', error.message);
+                alert(`Upload failed: ${error.message}`);
                 return null;
             }
         }
@@ -291,16 +308,28 @@
                 const photoFile = document.getElementById('form-photo').files[0];
                 const cvFile = document.getElementById('form-cv').files[0];
                 
+                if (photoFile || cvFile) {
+                    alert('Uploading files... please wait');
+                }
+                
+                console.log('Adding candidate:', { name, photoFile: photoFile?.name, cvFile: cvFile?.name });
+                
                 let photoUrl = null;
                 let cvUrl = null;
 
                 if (photoFile) {
+                    console.log('Uploading photo...');
                     photoUrl = await uploadFile(photoFile, 'photos', name);
+                    console.log('Photo URL result:', photoUrl);
                 }
 
                 if (cvFile) {
+                    console.log('Uploading CV...');
                     cvUrl = await uploadFile(cvFile, 'cvs', name);
+                    console.log('CV URL result:', cvUrl);
                 }
+
+                console.log('Creating candidate document with:', { name, photoUrl, cvUrl });
 
                 await addDoc(collection(db, "candidates"), {
                     id: Math.max(...candidates.map(c => c.id), 0) + 1,
