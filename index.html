@@ -327,7 +327,16 @@
                 querySnapshot.forEach(docSnap => {
                     const c = docSnap.data();
                     const docId = docSnap.id;
-                    const avgRating = c.ratings ? Object.values(c.ratings).reduce((a,b) => a+b, 0) / Object.keys(c.ratings).length : 0;
+                    
+                    // Calculate average rating - handle empty ratings
+                    let avgRating = 0;
+                    if (c.ratings && Object.keys(c.ratings).length > 0) {
+                        const scores = Object.values(c.ratings).flatMap(raterScores => Object.values(raterScores));
+                        avgRating = scores.length > 0 ? scores.reduce((a,b) => a+b, 0) / scores.length : 0;
+                    }
+                    
+                    // Get round status - default to round1 if not set
+                    const round = c.round || 'round1';
 
                     const card = document.createElement('div');
                     card.className = 'candidate-card';
@@ -336,8 +345,8 @@
                         <div class="card-content">
                             <div class="card-name">${c.name}</div>
                             <div class="card-position">${c.position || 'N/A'}</div>
-                            <div class="card-score"><div><div class="score-number">${avgRating.toFixed(1)}</div></div><div class="score-label">Avg Rating</div></div>
-                            <span class="card-round ${c.round}">${c.round}</span>
+                            <div class="card-score"><div><div class="score-number">${avgRating > 0 ? avgRating.toFixed(1) : '—'}</div></div><div class="score-label">Avg Rating</div></div>
+                            <span class="card-round ${round}">${round}</span>
                             <div style="margin-top: 16px; display: flex; gap: 8px;">
                                 <button class="btn-small" onclick="window.openRating('${docId}', '${c.name}')">+ RATE</button>
                                 <button class="btn-small" onclick="window.openDetail('${docId}')">INFO</button>
