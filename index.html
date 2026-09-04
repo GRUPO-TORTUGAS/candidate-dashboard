@@ -6,9 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Casa Las Tortugas - Candidate Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/storage.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -24,12 +21,6 @@
         .header { text-align: center; margin-bottom: 50px; border-bottom: 2px solid #e6cd87; padding-bottom: 30px; }
         .header h1 { font-size: 48px; color: #9c523d; margin-bottom: 12px; font-weight: 400; letter-spacing: 3px; }
         .header p { font-size: 14px; color: #81a1ab; letter-spacing: 2px; }
-        .breadcrumb { margin-bottom: 30px; }
-        .breadcrumb a { color: #9c523d; text-decoration: none; font-size: 13px; letter-spacing: 1px; }
-        .breadcrumb a:hover { text-decoration: underline; }
-        .breadcrumb span { color: #999; margin: 0 8px; }
-        
-        /* Dashboard Maestro */
         .vacancies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
         .vacancy-card { background: white; border-radius: 4px; padding: 40px; text-align: center; box-shadow: 0 2px 12px rgba(156, 82, 61, 0.08); transition: all 0.3s ease; border: 1px solid #f0e8e0; cursor: pointer; }
         .vacancy-card:hover { box-shadow: 0 8px 24px rgba(156, 82, 61, 0.15); transform: translateY(-4px); }
@@ -39,84 +30,8 @@
         .vacancy-label { font-size: 12px; color: #999; letter-spacing: 1px; margin-bottom: 24px; }
         .vacancy-btn { padding: 12px 24px; background: #9c523d; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Bitter', serif; font-size: 13px; letter-spacing: 1px; font-weight: 600; transition: all 0.3s ease; }
         .vacancy-btn:hover { background: #7d4230; }
-        
-        /* Navigation Tabs */
-        .nav-tabs { display: flex; gap: 30px; border-bottom: 2px solid #e6cd87; margin-bottom: 40px; }
-        .nav-tab { padding: 16px 0; border: none; background: none; font-family: 'Bitter', serif; font-size: 14px; letter-spacing: 2px; color: #999; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; }
-        .nav-tab:hover { color: #9c523d; }
-        .nav-tab.active { color: #9c523d; border-bottom-color: #e6cd87; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        
-        /* Controls */
-        .controls { display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; margin-bottom: 40px; padding: 30px; background: white; border-radius: 4px; box-shadow: 0 2px 12px rgba(156, 82, 61, 0.08); }
-        .controls input, .controls select { padding: 12px; border: 1px solid #d4c5b9; border-radius: 4px; font-family: 'Bitter', serif; font-size: 13px; }
-        .controls label { display: block; font-size: 11px; color: #999; margin-bottom: 8px; letter-spacing: 1px; }
-        .btn-export { padding: 12px 24px; background: #e6cd87; color: #2c2c2c; border: none; border-radius: 4px; cursor: pointer; font-family: 'Bitter', serif; font-size: 13px; letter-spacing: 1px; font-weight: 600; align-self: flex-end; transition: all 0.3s ease; }
-        .btn-export:hover { background: #d4b86f; }
-        
-        /* Candidate Cards */
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; margin-bottom: 40px; }
-        .candidate-card { background: white; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 12px rgba(156, 82, 61, 0.08); transition: all 0.3s ease; border: 1px solid #f0e8e0; position: relative; }
-        .candidate-card:hover { box-shadow: 0 8px 24px rgba(156, 82, 61, 0.15); transform: translateY(-4px); }
-        .card-photo { width: 100%; height: 280px; background: linear-gradient(135deg, #e6cd87 0%, #dd9973 100%); display: flex; align-items: center; justify-content: center; font-size: 60px; overflow: hidden; position: relative; }
-        .card-photo img { width: 100%; height: 100%; object-fit: cover; }
-        .experience-badge { position: absolute; top: 12px; right: 12px; background: #9c523d; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .card-content { padding: 24px; }
-        .card-name { font-size: 18px; font-weight: 700; color: #9c523d; margin-bottom: 8px; }
-        .card-position { font-size: 12px; color: #999; margin-bottom: 16px; }
-        .card-score { display: flex; justify-content: space-between; padding-top: 16px; border-top: 2px solid #f0e8e0; margin-bottom: 12px; }
-        .score-number { font-size: 28px; font-weight: 700; color: #e6cd87; }
-        .score-label { font-size: 11px; color: #999; }
-        .card-round { display: inline-block; padding: 6px 12px; background: #f0e8e0; border-radius: 4px; font-size: 11px; margin-bottom: 12px; color: #9c523d; font-weight: 600; }
-        .card-round.final { background: #d4e8de; color: #2d6a4f; }
-        .card-round.round2 { background: #fef3c7; color: #92400e; }
-        .card-round.round1 { background: #dbeafe; color: #0c4a6e; }
-        
-        /* Forms */
-        .candidate-form { background: white; padding: 30px; border-radius: 4px; margin-bottom: 30px; box-shadow: 0 2px 12px rgba(156, 82, 61, 0.08); }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .form-row.full { grid-template-columns: 1fr; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 11px; color: #999; margin-bottom: 8px; letter-spacing: 1px; }
-        .form-group input { padding: 12px; border: 1px solid #d4c5b9; border-radius: 4px; font-family: 'Bitter', serif; font-size: 13px; }
-        .btn-add { padding: 14px 28px; background: #9c523d; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Bitter', serif; font-size: 13px; margin-bottom: 20px; letter-spacing: 1px; font-weight: 600; transition: all 0.3s ease; }
-        .btn-add:hover { background: #7d4230; }
-        
-        /* Tables */
-        .candidates-table { background: white; border-radius: 4px; width: 100%; border-collapse: collapse; font-size: 13px; box-shadow: 0 2px 12px rgba(156, 82, 61, 0.08); }
-        .candidates-table th { background: linear-gradient(135deg, #9c523d 0%, #7d4230 100%); padding: 16px; text-align: left; font-weight: 600; color: white; letter-spacing: 1px; }
-        .candidates-table td { padding: 14px 16px; border-bottom: 1px solid #f0e8e0; }
-        .candidates-table tr:hover { background: #faf8f5; }
-        .btn-small { padding: 6px 12px; background: white; border: 1px solid #d4c5b9; border-radius: 4px; cursor: pointer; font-family: 'Bitter', serif; font-size: 12px; margin-right: 6px; transition: all 0.2s ease; }
-        .btn-small:hover { background: #f0e8e0; border-color: #9c523d; color: #9c523d; }
-        .btn-delete { padding: 6px 12px; background: #f5e8e3; border: 1px solid #d4c5b9; border-radius: 4px; cursor: pointer; font-size: 11px; color: #9c523d; transition: all 0.2s ease; }
-        .btn-delete:hover { background: #e8d4c7; }
-        
-        /* Modals */
-        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow: hidden; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; border-radius: 4px; max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .modal-title { font-size: 28px; color: #9c523d; margin-bottom: 30px; border-bottom: 2px solid #e6cd87; padding: 40px 40px 16px 40px; padding-bottom: 16px; flex-shrink: 0; }
-        #ratingContent { flex: 1; overflow-y: auto; padding: 0 40px; }
-        #modalBody { overflow-y: auto; max-height: calc(90vh - 200px); padding: 0 40px; }
-        .detail-section { margin-bottom: 24px; }
-        .detail-label { font-size: 11px; color: #999; margin-bottom: 6px; letter-spacing: 1px; }
-        .detail-value { font-size: 14px; color: #2c2c2c; }
-        .btn-secondary { padding: 12px; background: white; border: 2px solid #d4c5b9; border-radius: 4px; cursor: pointer; font-family: 'Bitter', serif; font-size: 13px; transition: all 0.3s ease; }
-        .btn-secondary:hover { border-color: #9c523d; color: #9c523d; }
-        .btn-primary { padding: 12px; background: #9c523d; color: white; border: 1px solid #9c523d; border-radius: 4px; cursor: pointer; font-family: 'Bitter', serif; font-size: 13px; transition: all 0.3s ease; }
-        .btn-primary:hover { background: #7d4230; }
-        .rating-section { margin-bottom: 30px; }
-        .rating-label { font-size: 13px; font-weight: 600; color: #2c2c2c; margin-bottom: 12px; display: block; }
-        .rating-buttons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-        .rating-btn { padding: 12px; background: #f0e8e0; border: 2px solid #d4c5b9; border-radius: 4px; cursor: pointer; font-family: 'Bitter', serif; font-size: 14px; font-weight: 600; transition: all 0.2s ease; }
-        .rating-btn:hover { border-color: #e6cd87; }
-        .rating-btn.active { background: #9c523d; color: white; border-color: #9c523d; }
-        textarea { width: 100%; padding: 12px; border: 1px solid #d4c5b9; border-radius: 4px; font-family: 'Bitter', serif; font-size: 13px; resize: vertical; min-height: 80px; }
-        .modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 30px; padding: 30px 40px; border-top: 1px solid #f0e8e0; flex-shrink: 0; }
-        .close-btn { position: absolute; top: 20px; right: 20px; background: #f0e8e0; border: 1px solid #d4c5b9; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-size: 18px; transition: all 0.2s ease; z-index: 1001; }
-        .close-btn:hover { background: #e8d4c7; }
+        .loading { text-align: center; padding: 40px; font-size: 16px; color: #999; }
+        .error { color: #d32f2f; padding: 20px; background: #ffebee; border-radius: 4px; margin: 20px 0; }
     </style>
 </head>
 <body>
@@ -126,146 +41,22 @@
             <div class="logo-year">1998</div>
         </div>
         
-        <div id="breadcrumbContainer" class="breadcrumb" style="display: none;">
-            <a href="/">Dashboard</a>
-            <span>→</span>
-            <span id="breadcrumbTitle"></span>
+        <div class="header">
+            <h1>CASA LAS TORTUGAS</h1>
+            <p>RECRUITMENT DASHBOARD</p>
         </div>
         
-        <!-- DASHBOARD MAESTRO -->
-        <div id="masterDashboard" class="tab-content active">
-            <div class="header">
-                <h1>CASA LAS TORTUGAS</h1>
-                <p>RECRUITMENT DASHBOARD</p>
-            </div>
-            
-            <div class="vacancies-grid" id="vacanciesGrid">
-                <!-- Se llena dinámicamente -->
-            </div>
-        </div>
-        
-        <!-- DASHBOARD POR VACANTE -->
-        <div id="vacancyDashboard" class="tab-content">
-            <div class="header">
-                <h1 id="vacancyTitle">GERENTE DE OPERACIONES</h1>
-                <p>CASA LAS TORTUGAS — CANDIDATE EVALUATION</p>
-            </div>
-            
-            <div class="nav-tabs">
-                <button class="nav-tab active" onclick="window.switchTab('evaluate')">EVALUATE</button>
-                <button class="nav-tab" onclick="window.switchTab('candidates')">MANAGE CANDIDATES</button>
-            </div>
-            
-            <div id="evaluate-tab" class="tab-content active">
-                <div class="controls">
-                    <div>
-                        <label>Your Name</label>
-                        <input type="text" id="raterName" placeholder="e.g., María, Juan">
-                    </div>
-                    <div>
-                        <label>Filter by Round</label>
-                        <select id="roundFilter" onchange="window.loadCandidates()">
-                            <option value="">All Rounds</option>
-                            <option value="round1">Round 1</option>
-                            <option value="round2">Round 2</option>
-                            <option value="final">Final</option>
-                        </select>
-                    </div>
-                    <button class="btn-export" onclick="window.exportCSV()">Export CSV</button>
-                </div>
-                
-                <div class="cards-grid" id="candidatesGrid">
-                    <!-- Se llena dinámicamente -->
-                </div>
-            </div>
-            
-            <div id="candidates-tab" class="tab-content">
-                <div class="candidate-form">
-                    <h3 style="margin-bottom: 20px; color: #9c523d;">Add New Candidate</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Name</label>
-                            <input type="text" id="newName" placeholder="Candidate name">
-                        </div>
-                        <div class="form-group">
-                            <label>Experience (years)</label>
-                            <input type="number" id="newExperience" placeholder="e.g., 5">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input type="email" id="newEmail" placeholder="candidate@example.com">
-                        </div>
-                        <div class="form-group">
-                            <label>Phone</label>
-                            <input type="text" id="newPhone" placeholder="Phone number">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>PMS Systems</label>
-                            <input type="text" id="newPms" placeholder="e.g., Opera, Mews">
-                        </div>
-                        <div class="form-group">
-                            <label>Availability</label>
-                            <input type="text" id="newAvailability" placeholder="e.g., Immediate">
-                        </div>
-                    </div>
-                    <div class="form-row full">
-                        <div class="form-group">
-                            <label>CV URL</label>
-                            <input type="text" id="newCvUrl" placeholder="https://...">
-                        </div>
-                    </div>
-                    <button class="btn-add" onclick="window.addCandidate()">Add Candidate</button>
-                </div>
-                
-                <table class="candidates-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Experience</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="candidatesTableBody">
-                        <!-- Se llena dinámicamente -->
-                    </tbody>
-                </table>
-            </div>
+        <div id="mainContent">
+            <div class="loading">Cargando vacantes...</div>
         </div>
     </div>
 
-    <!-- Modal para detalles -->
-    <div id="detailModal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="window.closeModal()">✕</button>
-            <div class="modal-title" id="modalName">Candidate Name</div>
-            <div id="modalBody"></div>
-            <div class="modal-buttons">
-                <button class="btn-secondary" onclick="window.closeModal()">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para rating -->
-    <div id="ratingModal" class="modal">
-        <div class="modal-content">
-            <button class="close-btn" onclick="window.closeRatingModal()">✕</button>
-            <div class="modal-title">Rate <span id="ratingCandidateName"></span></div>
-            <div id="ratingContent"></div>
-            <div class="modal-buttons">
-                <button class="btn-secondary" onclick="window.closeRatingModal()">Cancel</button>
-                <button class="btn-primary" onclick="window.saveRating()">Save Rating</button>
-            </div>
-        </div>
-    </div>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/storage.js"></script>
 
     <script>
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDTbSrn6XO7SfUvO3lJlMaH3nWgqKDPuBo",
             authDomain: "casa-las-tortugas-clt.firebaseapp.com",
@@ -275,413 +66,63 @@
             appId: "1:920869175093:web:06f8c4a38c9889f4ee11f3"
         };
 
-        // Wait for Firebase to load
-        let db, storage;
-        
-        function initializeFirebase() {
-            if (typeof firebase !== 'undefined' && firebase.apps) {
-                try {
-                    // Initialize Firebase
-                    if (firebase.apps.length === 0) {
-                        firebase.initializeApp(firebaseConfig);
-                    }
-                    
-                    // Get instances
-                    db = firebase.firestore();
-                    storage = firebase.storage();
-                    
-                    console.log('✓ Firebase initialized');
-                    window.initRouter();
-                } catch (e) {
-                    console.error('Error initializing Firebase:', e);
-                }
-            } else {
-                // Firebase not loaded yet, wait and retry
-                setTimeout(initializeFirebase, 100);
-            }
-        }
-        
-        // Start after page loads
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeFirebase);
-        } else {
-            // Already loaded
-            setTimeout(initializeFirebase, 100);
-        }
-        
-        // State
-        window.currentVacancy = null;
-        window.currentPath = window.location.pathname;
-        window.competencies = ['Boutique Operations', 'English Fluency', 'Housekeeping Mgmt', 'PMS/Technology', 'Leadership', 'Service Standards', 'Problem-solving', 'Budget Control'];
-        
-        // Router
-        window.initRouter = function() {
-            const path = window.location.pathname;
-            
-            if (path === '/' || path === '/dashboard' || path === '') {
-                // Master Dashboard
-                document.getElementById('masterDashboard').classList.add('active');
-                document.getElementById('vacancyDashboard').classList.remove('active');
-                document.getElementById('breadcrumbContainer').style.display = 'none';
-                window.loadVacancies();
-            } else {
-                // Vacancy Dashboard
-                const match = path.match(/\/dashboard\/([a-z-]+)/);
-                if (match) {
-                    window.currentVacancy = match[1];
-                    document.getElementById('masterDashboard').classList.remove('active');
-                    document.getElementById('vacancyDashboard').classList.add('active');
-                    document.getElementById('breadcrumbContainer').style.display = 'block';
-                    document.getElementById('breadcrumbTitle').textContent = window.currentVacancy.replace('-', ' ').toUpperCase();
-                    window.loadVacancyDashboard();
-                }
-            }
-        };
-        
-        // Vacancies Data
-        window.vacanciesData = [
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Vacancy data
+        const vacancies = [
             { slug: 'gerente-operativo', name: 'Gerente Operativo', icon: '👔' },
             { slug: 'recepcionista', name: 'Recepcionista', icon: '📞' },
             { slug: 'ama-de-llaves', name: 'Ama de Llaves', icon: '🏠' }
         ];
-        
-        // Load Master Dashboard
-        window.loadVacancies = async function() {
+
+        async function loadVacancies() {
             try {
-                const grid = document.getElementById('vacanciesGrid');
-                grid.innerHTML = '';
-                
-                for (const vacancy of window.vacanciesData) {
-                    // Count candidates for this vacancy
-                    const query = db.collection('candidates').where('vacante', '==', vacancy.slug);
-                    const snapshot = await query.get();
-                    const count = snapshot.size;
-                    
-                    const card = document.createElement('div');
-                    card.className = 'vacancy-card';
-                    card.innerHTML = `
-                        <div class="vacancy-icon">${vacancy.icon}</div>
-                        <div class="vacancy-title">${vacancy.name}</div>
-                        <div class="vacancy-count">${count}</div>
-                        <div class="vacancy-label">candidatos en proceso</div>
-                        <button class="vacancy-btn" onclick="window.navigateTo('/dashboard/${vacancy.slug}')">Abrir dashboard</button>
-                    `;
-                    grid.appendChild(card);
+                const mainContent = document.getElementById('mainContent');
+                let html = '<div class="vacancies-grid">';
+
+                for (const vacancy of vacancies) {
+                    try {
+                        // Count candidates for this vacancy
+                        const snapshot = await db.collection('candidates')
+                            .where('vacante', '==', vacancy.slug)
+                            .get();
+                        const count = snapshot.size;
+
+                        html += `
+                            <div class="vacancy-card" onclick="window.location.href='/dashboard/${vacancy.slug}'">
+                                <div class="vacancy-icon">${vacancy.icon}</div>
+                                <div class="vacancy-title">${vacancy.name}</div>
+                                <div class="vacancy-count">${count}</div>
+                                <div class="vacancy-label">candidatos en proceso</div>
+                                <button class="vacancy-btn">Abrir dashboard</button>
+                            </div>
+                        `;
+                    } catch (error) {
+                        console.error(`Error loading vacancy ${vacancy.slug}:`, error);
+                        html += `
+                            <div class="vacancy-card">
+                                <div class="error">Error cargando vacante</div>
+                            </div>
+                        `;
+                    }
                 }
+
+                html += '</div>';
+                mainContent.innerHTML = html;
             } catch (error) {
                 console.error('Error loading vacancies:', error);
-            }
-        };
-        
-        // Load Vacancy Dashboard
-        window.loadVacancyDashboard = async function() {
-            const vacancy = window.vacanciesData.find(v => v.slug === window.currentVacancy);
-            if (vacancy) {
-                document.getElementById('vacancyTitle').textContent = vacancy.name;
-            }
-            window.loadCandidates();
-        };
-        
-        // Load Candidates
-        window.loadCandidates = async function() {
-            try {
-                if (!window.currentVacancy) return;
-                
-                const roundFilter = document.getElementById('roundFilter')?.value || '';
-                let query = db.collection('candidates').where('vacante', '==', window.currentVacancy);
-                
-                const snapshot = await query.get();
-                const grid = document.getElementById('candidatesGrid');
-                const tableBody = document.getElementById('candidatesTableBody');
-                
-                if (grid) grid.innerHTML = '';
-                if (tableBody) tableBody.innerHTML = '';
-                
-                const candidates = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    data.id = doc.id;
-                    candidates.push(data);
-                });
-                
-                // Sort by name
-                candidates.sort((a, b) => a.name.localeCompare(b.name));
-                
-                candidates.forEach(c => {
-                    const roundStatus = c.round || 'round1';
-                    
-                    // Skip if round filter is active and doesn't match
-                    if (roundFilter && roundStatus !== roundFilter) return;
-                    
-                    // Card for grid view
-                    if (grid) {
-                        const avgRating = window.calculateAverageRating(c.ratings);
-                        const card = document.createElement('div');
-                        card.className = 'candidate-card';
-                        card.innerHTML = `
-                            <div class="card-photo">
-                                ${c.photoUrl ? `<img src="${c.photoUrl}" alt="${c.name}">` : c.name.charAt(0)}
-                                <div class="experience-badge">${c.experience || 0}y</div>
-                            </div>
-                            <div class="card-content">
-                                <div class="card-name">${c.name}</div>
-                                <div class="card-round ${roundStatus}">${roundStatus === 'round1' ? 'Round 1' : roundStatus === 'round2' ? 'Round 2' : 'Final'}</div>
-                                <div class="card-score">
-                                    <div>
-                                        <div class="score-number">${avgRating}</div>
-                                        <div class="score-label">avg rating</div>
-                                    </div>
-                                </div>
-                                <button class="btn-small" onclick="window.showDetail('${c.id}')">View Profile</button>
-                                <button class="btn-small" onclick="window.openRating('${c.id}', '${c.name}')">Rate</button>
-                            </div>
-                        `;
-                        grid.appendChild(card);
-                    }
-                    
-                    // Row for table view
-                    if (tableBody) {
-                        const row = tableBody.insertRow();
-                        row.innerHTML = `
-                            <td>${c.name}</td>
-                            <td>${c.experience || 'N/A'}</td>
-                            <td>${c.email || 'N/A'}</td>
-                            <td>${c.phone || 'N/A'}</td>
-                            <td>
-                                <button class="btn-small" onclick="window.showDetail('${c.id}')">Details</button>
-                                <button class="btn-delete" onclick="window.deleteCandidate('${c.id}')">Delete</button>
-                            </td>
-                        `;
-                    }
-                });
-            } catch (error) {
-                console.error('Error loading candidates:', error);
-            }
-        };
-        
-        // Calculate Average Rating
-        window.calculateAverageRating = function(ratings) {
-            if (!ratings || Object.keys(ratings).length === 0) return '—';
-            
-            let totalScore = 0;
-            let totalCount = 0;
-            
-            Object.values(ratings).forEach(rater => {
-                Object.values(rater).forEach(score => {
-                    if (typeof score === 'number') {
-                        totalScore += score;
-                        totalCount++;
-                    }
-                });
-            });
-            
-            return totalCount === 0 ? '—' : (totalScore / totalCount).toFixed(1);
-        };
-        
-        // Show Detail
-        window.showDetail = async function(docId) {
-            try {
-                const doc = await db.collection('candidates').doc(docId).get();
-                if (!doc.exists) return;
-                
-                const c = doc.data();
-                const avgRating = window.calculateAverageRating(c.ratings);
-                
-                let ratingsHTML = '';
-                if (c.ratings) {
-                    ratingsHTML = '<div class="detail-section"><div class="detail-label">RATINGS</div>';
-                    Object.entries(c.ratings).forEach(([rater, competencies]) => {
-                        ratingsHTML += `<div style="margin-bottom: 12px;"><strong>${rater}:</strong> `;
-                        Object.entries(competencies).forEach(([comp, score]) => {
-                            if (typeof score === 'number') {
-                                ratingsHTML += `${comp}: <strong>${score}</strong> `;
-                            }
-                        });
-                        ratingsHTML += '</div>';
-                    });
-                    ratingsHTML += '</div>';
-                }
-                
-                document.getElementById('modalBody').innerHTML = `
-                    <div class="detail-section">
-                        <div class="detail-label">AVERAGE RATING</div>
-                        <div class="detail-value" style="font-size: 32px; color: #e6cd87; font-weight: 700;">${avgRating}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">EXPERIENCE</div>
-                        <div class="detail-value">${c.experience || 'N/A'} years</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">EMAIL</div>
-                        <div class="detail-value">${c.email || 'N/A'}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">PHONE</div>
-                        <div class="detail-value">${c.phone || 'N/A'}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">PMS SYSTEMS</div>
-                        <div class="detail-value">${c.pms || 'N/A'}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">AVAILABILITY</div>
-                        <div class="detail-value">${c.availability || 'N/A'}</div>
-                    </div>
-                    ${ratingsHTML}
-                    ${c.cvUrl ? `<div class="detail-section"><a href="${c.cvUrl}" target="_blank" style="color: #9c523d; text-decoration: none; font-weight: 600;">📥 Download CV</a></div>` : ''}
-                `;
-                document.getElementById('detailModal').classList.add('active');
-                document.getElementById('modalName').textContent = c.name;
-            } catch (error) {
-                console.error('Error loading detail:', error);
-            }
-        };
-        
-        // Open Rating Modal
-        window.openRating = function(docId, name) {
-            const raterName = document.getElementById('raterName').value.trim();
-            if (!raterName) {
-                alert('Please enter your name');
-                return;
-            }
-            
-            let ratingHTML = '';
-            window.competencies.forEach((comp, idx) => {
-                ratingHTML += `
-                    <div class="rating-section">
-                        <label class="rating-label" style="display: flex; align-items: center; gap: 12px;"><span style="background: #9c523d; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">${idx+1}</span> ${comp}</label>
-                        <div class="rating-buttons">
-                            ${[1,2,3,4,5].map(num => `<button class="rating-btn" onclick="window.setRating('${comp}', ${num})">${num}</button>`).join('')}
-                        </div>
-                        <textarea id="comment-${comp}" placeholder="Comments (optional)"></textarea>
+                document.getElementById('mainContent').innerHTML = `
+                    <div class="error">
+                        <strong>Error al cargar vacantes:</strong> ${error.message}
                     </div>
                 `;
-            });
-            
-            document.getElementById('ratingContent').innerHTML = ratingHTML;
-            document.getElementById('ratingCandidateName').textContent = name;
-            window.currentRatingDocId = docId;
-            window.currentRatingRaterName = raterName;
-            document.getElementById('ratingModal').classList.add('active');
-        };
-        
-        // Set Rating
-        window.setRating = function(competency, rating) {
-            event.target.parentElement.querySelectorAll('.rating-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            window.currentRatings = window.currentRatings || {};
-            window.currentRatings[competency] = rating;
-        };
-        
-        // Save Rating
-        window.saveRating = async function() {
-            if (!window.currentRatings || Object.keys(window.currentRatings).length === 0) {
-                alert('Please rate at least one competency');
-                return;
             }
-            
-            try {
-                const candidateRef = db.collection('candidates').doc(window.currentRatingDocId);
-                const candidateDoc = await candidateRef.get();
-                const ratings = candidateDoc.data().ratings || {};
-                ratings[window.currentRatingRaterName] = window.currentRatings;
-                
-                await candidateRef.update({ ratings });
-                window.currentRatings = null;
-                window.closeRatingModal();
-                window.loadCandidates();
-            } catch (error) {
-                console.error('Error saving rating:', error);
-                alert('Error saving rating');
-            }
-        };
-        
-        // Add Candidate
-        window.addCandidate = async function() {
-            const name = document.getElementById('newName')?.value.trim();
-            const experience = parseInt(document.getElementById('newExperience')?.value) || 0;
-            const email = document.getElementById('newEmail')?.value.trim();
-            const phone = document.getElementById('newPhone')?.value.trim();
-            const pms = document.getElementById('newPms')?.value.trim();
-            const availability = document.getElementById('newAvailability')?.value.trim();
-            const cvUrl = document.getElementById('newCvUrl')?.value.trim();
-            
-            if (!name) {
-                alert('Please enter candidate name');
-                return;
-            }
-            
-            try {
-                await db.collection('candidates').add({
-                    name,
-                    experience,
-                    email,
-                    phone,
-                    pms,
-                    availability,
-                    cvUrl,
-                    vacante: window.currentVacancy,
-                    round: 'round1',
-                    ratings: {},
-                    createdAt: new Date()
-                });
-                
-                // Clear form
-                document.getElementById('newName').value = '';
-                document.getElementById('newExperience').value = '';
-                document.getElementById('newEmail').value = '';
-                document.getElementById('newPhone').value = '';
-                document.getElementById('newPms').value = '';
-                document.getElementById('newAvailability').value = '';
-                document.getElementById('newCvUrl').value = '';
-                
-                window.loadCandidates();
-            } catch (error) {
-                console.error('Error adding candidate:', error);
-                alert('Error adding candidate');
-            }
-        };
-        
-        // Delete Candidate
-        window.deleteCandidate = async function(docId) {
-            if (confirm('Delete this candidate?')) {
-                try {
-                    await db.collection('candidates').doc(docId).delete();
-                    window.loadCandidates();
-                } catch (error) {
-                    console.error('Error deleting candidate:', error);
-                }
-            }
-        };
-        
-        // Switch Tab
-        window.switchTab = function(tabName) {
-            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(tabName + '-tab').classList.add('active');
-        };
-        
-        // Close Modals
-        window.closeModal = function() {
-            document.getElementById('detailModal').classList.remove('active');
-        };
-        
-        window.closeRatingModal = function() {
-            document.getElementById('ratingModal').classList.remove('active');
-        };
-        
-        // Navigation
-        window.navigateTo = function(path) {
-            window.history.pushState({}, '', path);
-            window.initRouter();
-        };
-        
-        // Export CSV
-        window.exportCSV = function() {
-            alert('Export feature coming soon');
-        };
+        }
+
+        // Load on page ready
+        setTimeout(loadVacancies, 500);
     </script>
 </body>
 </html>
