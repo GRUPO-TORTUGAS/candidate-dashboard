@@ -51,10 +51,10 @@
         </div>
     </div>
 
-    <!-- Firebase compat -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/storage.js"></script>
+    <!-- Firebase 8.x -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <script>
         console.log('Script starting...');
@@ -82,7 +82,7 @@
                 // Initialize Firebase
                 firebase.initializeApp(firebaseConfig);
                 const db = firebase.firestore();
-                console.log('Firebase initialized successfully');
+                console.log('Firebase 8.x initialized successfully');
 
                 // Vacancy data
                 const vacancies = [
