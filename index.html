@@ -253,6 +253,33 @@
         </div>
     </div>
 
+    <!-- Create Vacancy Modal -->
+    <div id="createVacancyModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeCreateVacancyModal()">✕</button>
+            <div class="modal-header">
+                <h2>Agregar nueva vacante</h2>
+                <p>Crea una nueva posición para reclutar candidatos</p>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre de la vacante</label>
+                        <input type="text" id="vacancyName" placeholder="ej: Chef de Cocina">
+                    </div>
+                    <div class="form-group">
+                        <label>Slug (URL)</label>
+                        <input type="text" id="vacancySlug" placeholder="ej: chef-cocina">
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 15px; padding: 25px 40px; border-top: 1px solid #f0ebe5;">
+                <button class="btn btn-secondary" onclick="closeCreateVacancyModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveVacancy()">Crear vacante</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -260,6 +287,8 @@
 
     <script>
         let db, storage;
+        let vacancies = [];
+        
         const firebaseConfig = {
             apiKey: "AIzaSyDNzqc4jZOl5LStJkAQkwL3kwPgNf5vScU",
             authDomain: "casa-las-tortugas-candidates.firebaseapp.com",
@@ -269,13 +298,7 @@
             appId: "1:944487796645:web:a741565ab36236c0d9a24c"
         };
 
-        const competencies = ['Operaciones Boutique', 'Inglés Fluido', 'Gestión Limpieza', 'PMS/Tecnología', 'Liderazgo', 'Estándares Servicio', 'Resolución Problemas', 'Control Presupuesto'];
-        
-        const vacancies = [
-            { slug: 'gerente-operativo', name: 'Gerente Operativo', icon: `<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="25" cy="12" r="5" fill="#9c523d"/><path d="M25 18C20 18 16 21 16 25v12h18V25c0-4-4-7-9-7Z" fill="#9c523d"/></svg>` },
-            { slug: 'recepcionista', name: 'Recepcionista', icon: `<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="8" width="30" height="30" rx="2" fill="none" stroke="#9c523d" stroke-width="2"/><path d="M16 20h18" stroke="#9c523d" stroke-width="2" stroke-linecap="round"/><path d="M16 26h18" stroke="#9c523d" stroke-width="2" stroke-linecap="round"/><path d="M16 32h12" stroke="#9c523d" stroke-width="2" stroke-linecap="round"/></svg>` },
-            { slug: 'ama-de-llaves', name: 'Ama de Llaves', icon: `<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 25c0-6 5-10 10-10s10 4 10 10-5 10-10 10-10-4-10-10Z" fill="none" stroke="#9c523d" stroke-width="2"/><circle cx="25" cy="25" r="4" fill="#9c523d"/><path d="M32 25h6v8h-6Z" fill="#9c523d" opacity="0.5"/></svg>` }
-        ];
+
 
         function loadLogo() {
             try {
@@ -290,6 +313,63 @@
             }
         }
 
+        async function loadVacancies() {
+            try {
+                const snapshot = await db.collection('vacancies').get();
+                vacancies = [];
+                snapshot.forEach(doc => {
+                    vacancies.push({ id: doc.id, ...doc.data() });
+                });
+            } catch (error) {
+                console.error('Error loading vacancies:', error);
+            }
+        }
+
+        function openCreateVacancyModal() {
+            document.getElementById('createVacancyModal').classList.add('active');
+            document.getElementById('vacancyName').value = '';
+            document.getElementById('vacancySlug').value = '';
+        }
+
+        function closeCreateVacancyModal() {
+            document.getElementById('createVacancyModal').classList.remove('active');
+        }
+
+        async function saveVacancy() {
+            const name = document.getElementById('vacancyName').value.trim();
+            const slug = document.getElementById('vacancySlug').value.trim();
+
+            if (!name || !slug) {
+                alert('Por favor complete todos los campos');
+                return;
+            }
+
+            try {
+                await db.collection('vacancies').add({
+                    name: name,
+                    slug: slug,
+                    createdAt: new Date()
+                });
+
+                closeCreateVacancyModal();
+                await loadVacancies();
+                loadMasterDashboard();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function deleteVacancy(vacancyId) {
+            if (!confirm('¿Eliminar esta vacante? Los candidatos asociados no se eliminarán.')) return;
+            try {
+                await db.collection('vacancies').doc(vacancyId).delete();
+                await loadVacancies();
+                loadMasterDashboard();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
         function initFirebase() {
             if (typeof firebase === 'undefined') {
                 setTimeout(initFirebase, 100);
@@ -301,7 +381,9 @@
             db = firebase.firestore();
             storage = firebase.storage();
             loadLogo();
-            router();
+            loadVacancies().then(() => {
+                router();
+            });
         }
 
         function router() {
@@ -316,32 +398,45 @@
             if (match) {
                 loadVacancyDashboard(match[1]);
             } else {
-                loadMasterDashboard();
+                loadVacancies().then(() => {
+                    loadMasterDashboard();
+                });
             }
         }
 
         async function loadMasterDashboard() {
             const mainContent = document.getElementById('mainContent');
-            let html = '<div class="vacancies-grid">';
+            let html = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;"><h3 style="font-size: 18px; color: #2d2d2d; font-weight: 600; letter-spacing: 1px;">VACANTES ABIERTAS</h3><button class="btn btn-primary" onclick="openCreateVacancyModal()" style="padding: 10px 24px; font-size: 11px;">+ Agregar vacante</button></div>';
+            html += '<div class="vacancies-grid">';
 
-            for (const vacancy of vacancies) {
-                try {
-                    const snapshot = await db.collection('candidates')
-                        .where('vacante', '==', vacancy.slug)
-                        .get();
-                    const count = snapshot.size;
+            if (vacancies.length === 0) {
+                html += '<div class="empty">No hay vacantes creadas. Crea una nueva para comenzar.</div>';
+            } else {
+                for (const vacancy of vacancies) {
+                    try {
+                        const snapshot = await db.collection('candidates')
+                            .where('vacante', '==', vacancy.slug)
+                            .get();
+                        const count = snapshot.size;
 
-                    html += `
-                        <div class="vacancy-card" onclick="window.location.href='/dashboard/${vacancy.slug}'">
-                            <div class="vacancy-icon">${vacancy.icon}</div>
-                            <div class="vacancy-title">${vacancy.name}</div>
-                            <div class="vacancy-count">${count}</div>
-                            <div class="vacancy-label">candidatos en proceso</div>
-                            <button class="vacancy-btn">Abrir dashboard</button>
-                        </div>
-                    `;
-                } catch (error) {
-                    console.error(`Error: ${vacancy.slug}`, error);
+                        html += `
+                            <div class="vacancy-card">
+                                <div style="text-align: center; margin-bottom: 20px;">
+                                    <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto;">
+                                        <circle cx="25" cy="12" r="5" fill="#9c523d"/>
+                                        <path d="M25 18C20 18 16 21 16 25v12h18V25c0-4-4-7-9-7Z" fill="#9c523d"/>
+                                    </svg>
+                                </div>
+                                <div class="vacancy-title">${vacancy.name}</div>
+                                <div class="vacancy-count">${count}</div>
+                                <div class="vacancy-label">candidatos en proceso</div>
+                                <button class="vacancy-btn" onclick="window.location.href='/dashboard/${vacancy.slug}'" style="margin-bottom: 10px;">Abrir dashboard</button>
+                                <button class="vacancy-btn" onclick="deleteVacancy('${vacancy.id}')" style="background: #c00; width: 100%;">Eliminar</button>
+                            </div>
+                        `;
+                    } catch (error) {
+                        console.error(`Error: ${vacancy.slug}`, error);
+                    }
                 }
             }
 
