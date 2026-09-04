@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Dashboard</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { color: #4ec9b0; }
+        pre { background: #2d2d2d; padding: 15px; border-radius: 4px; overflow-x: auto; }
+        .candidate { background: #2d2d2d; padding: 15px; margin: 10px 0; border-left: 4px solid #4ec9b0; }
+        .field { margin: 5px 0; }
+        .key { color: #9cdcfe; }
+        .value { color: #ce9178; }
+        .error { color: #f48771; }
+        .success { color: #6a9955; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug - Firestore Candidates</h1>
+        <div id="output"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDTbSrn6XO7SfUvO3lJlMaH3nWgqKDPuBo",
+            authDomain: "casa-las-tortugas-clt.firebaseapp.com",
+            projectId: "casa-las-tortugas-clt",
+            storageBucket: "casa-las-tortugas-clt.appspot.com",
+            messagingSenderId: "920869175093",
+            appId: "1:920869175093:web:06f8c4a38c9889f4ee11f3"
+        };
+
+        function initFirebase() {
+            if (typeof firebase === 'undefined') {
+                setTimeout(initFirebase, 100);
+                return;
+            }
+
+            if (firebase.apps.length === 0) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            const db = firebase.firestore();
+            
+            let output = '<pre>';
+            output += '<span class="success">✓ Firebase Initialized</span>\n\n';
+            output += '<span class="key">Loading all candidates...</span>\n\n';
+
+            db.collection('candidates').get().then(snapshot => {
+                output += `<span class="success">✓ Found ${snapshot.size} total candidates</span>\n\n`;
+
+                if (snapshot.empty) {
+                    output += '<span class="error">✗ No candidates found!</span>';
+                    document.getElementById('output').innerHTML = output + '</pre>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    output += `<span class="key">Document ID:</span> <span class="value">${doc.id}</span>\n`;
+                    output += JSON.stringify(data, null, 2).split('\n').map(line => 
+                        line.replace(/"/g, '"').includes(':') ? 
+                        '<span class="key">' + line.split(':')[0] + ':</span> <span class="value">' + line.split(':').slice(1).join(':') + '</span>' :
+                        '<span class="value">' + line + '</span>'
+                    ).join('\n');
+                    output += '\n\n---\n\n';
+                });
+
+                document.getElementById('output').innerHTML = output + '</pre>';
+            }).catch(error => {
+                output += `<span class="error">✗ Error: ${error.message}</span>`;
+                document.getElementById('output').innerHTML = output + '</pre>';
+            });
+        }
+
+        initFirebase();
+    </script>
+</body>
+</html>
