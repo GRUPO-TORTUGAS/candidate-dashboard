@@ -277,16 +277,30 @@
 
         // Wait for Firebase to load
         let db, storage;
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof firebase !== 'undefined') {
-                const app = firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-                storage = firebase.storage();
-                window.initRouter();
-            } else {
-                console.error('Firebase not loaded');
+        
+        function initializeFirebase() {
+            if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length === 0) {
+                try {
+                    const app = firebase.initializeApp(firebaseConfig);
+                    db = firebase.firestore();
+                    storage = firebase.storage();
+                    console.log('✓ Firebase initialized');
+                    window.initRouter();
+                } catch (e) {
+                    console.error('Error initializing Firebase:', e);
+                }
+            } else if (typeof firebase === 'undefined') {
+                // Firebase not loaded yet, wait and retry
+                setTimeout(initializeFirebase, 100);
             }
-        });
+        }
+        
+        // Start after page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeFirebase);
+        } else {
+            initializeFirebase();
+        }
         
         // State
         window.currentVacancy = null;
