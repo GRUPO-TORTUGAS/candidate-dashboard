@@ -262,16 +262,13 @@
                 <p>Crea una nueva posición para reclutar candidatos</p>
             </div>
             <div class="modal-body">
-                <div class="form-row">
+                <div class="form-row full">
                     <div class="form-group">
                         <label>Nombre de la vacante</label>
-                        <input type="text" id="vacancyName" placeholder="ej: Chef de Cocina">
-                    </div>
-                    <div class="form-group">
-                        <label>Slug (URL)</label>
-                        <input type="text" id="vacancySlug" placeholder="ej: chef-cocina">
+                        <input type="text" id="vacancyName" placeholder="ej: Chef de Cocina, Mantenimiento, etc.">
                     </div>
                 </div>
+                <p style="font-size: 11px; color: #999; margin-top: 10px;">El URL se generará automáticamente desde el nombre.</p>
             </div>
             <div style="display: flex; gap: 15px; padding: 25px 40px; border-top: 1px solid #f0ebe5;">
                 <button class="btn btn-secondary" onclick="closeCreateVacancyModal()">Cancelar</button>
@@ -337,12 +334,17 @@
 
         async function saveVacancy() {
             const name = document.getElementById('vacancyName').value.trim();
-            const slug = document.getElementById('vacancySlug').value.trim();
 
-            if (!name || !slug) {
-                alert('Por favor complete todos los campos');
+            if (!name) {
+                alert('Por favor ingrese el nombre de la vacante');
                 return;
             }
+
+            // Generar slug automáticamente desde el nombre
+            const slug = name
+                .toLowerCase()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-z0-9-]/g, '');
 
             try {
                 await db.collection('vacancies').add({
