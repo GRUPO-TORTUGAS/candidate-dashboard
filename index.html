@@ -499,8 +499,8 @@
                                     <div class="card-avg-score">${avgRating}</div>
                                 </div>
                                 <div class="card-actions">
-                                    <button class="card-btn" onclick="showDetail('${c.id}')">Ver perfil</button>
-                                    <button class="card-btn" onclick="openRating('${c.id}', '${c.name}')">Evaluar</button>
+                                    <button class="card-btn" data-id="${c.id}" onclick="showDetail(this.dataset.id)">Ver perfil</button>
+                                    <button class="card-btn" data-id="${c.id}" data-name="${c.name}" onclick="openRating(this.dataset.id, this.dataset.name)">Evaluar</button>
                                 </div>
                             </div>
                         </div>
@@ -591,8 +591,8 @@
                     <td>${c.email || 'N/A'}</td>
                     <td>${c.experience || 'N/A'}</td>
                     <td>
-                        <button class="btn-small" onclick="showDetail('${c.id}')">Ver</button>
-                        <button class="btn-delete" onclick="deleteCandidate('${c.id}')">Eliminar</button>
+                        <button class="btn-small" data-id="${c.id}" onclick="showDetail(this.dataset.id)">Ver</button>
+                        <button class="btn-delete" data-id="${c.id}" onclick="deleteCandidate(this.dataset.id)">Eliminar</button>
                     </td>
                 `;
             });
@@ -683,7 +683,7 @@
             `;
 
             document.getElementById('modalActions').innerHTML = `
-                <button class="btn btn-primary" onclick="openEditModal('${docId}')">Editar candidato</button>
+                <button class="btn btn-primary" data-id="${docId}" onclick="openEditModal(this.dataset.id)">Editar candidato</button>
                 <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
             `;
 
@@ -703,7 +703,7 @@
                             ${comp}
                         </div>
                         <div class="rating-buttons">
-                            ${[1,2,3,4,5].map(n => `<button class="rating-btn" onclick="window.setRating('${comp}', ${n})">${n}</button>`).join('')}
+                            ${[1,2,3,4,5].map(n => `<button class="rating-btn" data-comp="${comp}" data-rating="${n}" onclick="window.setRating(this.dataset.comp, this.dataset.rating)">${n}</button>`).join('')}
                         </div>
                     </div>
                 `;
@@ -719,9 +719,10 @@
         }
 
         window.setRating = function(competency, rating) {
-            event.target.parentElement.querySelectorAll('.rating-btn').forEach(btn => btn.classList.remove('active'));
+            const buttons = document.querySelectorAll(`[data-comp="${competency}"]`);
+            buttons.forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            window.currentRatings[competency] = rating;
+            window.currentRatings[competency] = parseInt(rating);
         };
 
         async function saveRating() {
