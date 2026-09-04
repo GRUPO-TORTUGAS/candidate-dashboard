@@ -79,16 +79,19 @@
 
         async function loadVacancies() {
             try {
+                console.log('Starting to load vacancies...');
                 const mainContent = document.getElementById('mainContent');
                 let html = '<div class="vacancies-grid">';
 
                 for (const vacancy of vacancies) {
+                    console.log(`Loading vacancy: ${vacancy.slug}`);
                     try {
                         // Count candidates for this vacancy
                         const snapshot = await db.collection('candidates')
                             .where('vacante', '==', vacancy.slug)
                             .get();
                         const count = snapshot.size;
+                        console.log(`${vacancy.slug}: ${count} candidates`);
 
                         html += `
                             <div class="vacancy-card" onclick="window.location.href='/dashboard/${vacancy.slug}'">
@@ -111,6 +114,7 @@
 
                 html += '</div>';
                 mainContent.innerHTML = html;
+                console.log('Vacancies loaded successfully');
             } catch (error) {
                 console.error('Error loading vacancies:', error);
                 document.getElementById('mainContent').innerHTML = `
@@ -121,8 +125,12 @@
             }
         }
 
-        // Load on page ready
-        setTimeout(loadVacancies, 500);
+        // Wait for Firebase to initialize, then load
+        console.log('Page loaded, waiting for Firebase...');
+        setTimeout(() => {
+            console.log('Firebase status:', firebase.apps.length > 0 ? 'Ready' : 'Not ready');
+            loadVacancies();
+        }, 1000);
     </script>
 </body>
 </html>
