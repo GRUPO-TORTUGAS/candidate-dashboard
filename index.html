@@ -51,86 +51,115 @@
         </div>
     </div>
 
-    <!-- Firebase -->
+    <!-- Firebase compat -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/storage.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyDTbSrn6XO7SfUvO3lJlMaH3nWgqKDPuBo",
-            authDomain: "casa-las-tortugas-clt.firebaseapp.com",
-            projectId: "casa-las-tortugas-clt",
-            storageBucket: "casa-las-tortugas-clt.appspot.com",
-            messagingSenderId: "920869175093",
-            appId: "1:920869175093:web:06f8c4a38c9889f4ee11f3"
-        };
+        console.log('Script starting...');
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        function initApp() {
+            // Check if Firebase is available
+            if (typeof firebase === 'undefined') {
+                console.log('Firebase not yet loaded, retrying in 100ms...');
+                setTimeout(initApp, 100);
+                return;
+            }
 
-        // Vacancy data
-        const vacancies = [
-            { slug: 'gerente-operativo', name: 'Gerente Operativo', icon: '👔' },
-            { slug: 'recepcionista', name: 'Recepcionista', icon: '📞' },
-            { slug: 'ama-de-llaves', name: 'Ama de Llaves', icon: '🏠' }
-        ];
+            console.log('Firebase is available, initializing app');
 
-        async function loadVacancies() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDTbSrn6XO7SfUvO3lJlMaH3nWgqKDPuBo",
+                authDomain: "casa-las-tortugas-clt.firebaseapp.com",
+                projectId: "casa-las-tortugas-clt",
+                storageBucket: "casa-las-tortugas-clt.appspot.com",
+                messagingSenderId: "920869175093",
+                appId: "1:920869175093:web:06f8c4a38c9889f4ee11f3"
+            };
+
             try {
-                console.log('Starting to load vacancies...');
-                const mainContent = document.getElementById('mainContent');
-                let html = '<div class="vacancies-grid">';
+                // Initialize Firebase
+                firebase.initializeApp(firebaseConfig);
+                const db = firebase.firestore();
+                console.log('Firebase initialized successfully');
 
-                for (const vacancy of vacancies) {
-                    console.log(`Loading vacancy: ${vacancy.slug}`);
+                // Vacancy data
+                const vacancies = [
+                    { slug: 'gerente-operativo', name: 'Gerente Operativo', icon: '👔' },
+                    { slug: 'recepcionista', name: 'Recepcionista', icon: '📞' },
+                    { slug: 'ama-de-llaves', name: 'Ama de Llaves', icon: '🏠' }
+                ];
+
+                async function loadVacancies() {
                     try {
-                        // Count candidates for this vacancy
-                        const snapshot = await db.collection('candidates')
-                            .where('vacante', '==', vacancy.slug)
-                            .get();
-                        const count = snapshot.size;
-                        console.log(`${vacancy.slug}: ${count} candidates`);
+                        console.log('Loading vacancies from Firestore...');
+                        const mainContent = document.getElementById('mainContent');
+                        let html = '<div class="vacancies-grid">';
 
-                        html += `
-                            <div class="vacancy-card" onclick="window.location.href='/dashboard/${vacancy.slug}'">
-                                <div class="vacancy-icon">${vacancy.icon}</div>
-                                <div class="vacancy-title">${vacancy.name}</div>
-                                <div class="vacancy-count">${count}</div>
-                                <div class="vacancy-label">candidatos en proceso</div>
-                                <button class="vacancy-btn">Abrir dashboard</button>
-                            </div>
-                        `;
+                        for (const vacancy of vacancies) {
+                            try {
+                                // Count candidates for this vacancy
+                                const snapshot = await db.collection('candidates')
+                                    .where('vacante', '==', vacancy.slug)
+                                    .get();
+                                const count = snapshot.size;
+                                console.log(`✓ ${vacancy.slug}: ${count} candidates`);
+
+                                html += `
+                                    <div class="vacancy-card" onclick="window.location.href='/dashboard/${vacancy.slug}'">
+                                        <div class="vacancy-icon">${vacancy.icon}</div>
+                                        <div class="vacancy-title">${vacancy.name}</div>
+                                        <div class="vacancy-count">${count}</div>
+                                        <div class="vacancy-label">candidatos en proceso</div>
+                                        <button class="vacancy-btn">Abrir dashboard</button>
+                                    </div>
+                                `;
+                            } catch (error) {
+                                console.error(`✗ Error loading ${vacancy.slug}:`, error.message);
+                                html += `
+                                    <div class="vacancy-card">
+                                        <div class="vacancy-icon">${vacancy.icon}</div>
+                                        <div class="vacancy-title">${vacancy.name}</div>
+                                        <div class="error" style="margin: 20px 0; font-size: 12px;">
+                                            Error: ${error.message}
+                                        </div>
+                                    </div>
+                                `;
+                            }
+                        }
+
+                        html += '</div>';
+                        mainContent.innerHTML = html;
+                        console.log('✓ Vacancies loaded successfully');
                     } catch (error) {
-                        console.error(`Error loading vacancy ${vacancy.slug}:`, error);
-                        html += `
-                            <div class="vacancy-card">
-                                <div class="error">Error cargando vacante</div>
+                        console.error('✗ Fatal error loading vacancies:', error);
+                        document.getElementById('mainContent').innerHTML = `
+                            <div class="error">
+                                <strong>Error al cargar vacantes:</strong><br>
+                                ${error.message}
                             </div>
                         `;
                     }
                 }
 
-                html += '</div>';
-                mainContent.innerHTML = html;
-                console.log('Vacancies loaded successfully');
+                // Load vacancies
+                loadVacancies();
+
             } catch (error) {
-                console.error('Error loading vacancies:', error);
+                console.error('✗ Firebase initialization error:', error);
                 document.getElementById('mainContent').innerHTML = `
                     <div class="error">
-                        <strong>Error al cargar vacantes:</strong> ${error.message}
+                        <strong>Error inicializando Firebase:</strong><br>
+                        ${error.message}
                     </div>
                 `;
             }
         }
 
-        // Wait for Firebase to initialize, then load
-        console.log('Page loaded, waiting for Firebase...');
-        setTimeout(() => {
-            console.log('Firebase status:', firebase.apps.length > 0 ? 'Ready' : 'Not ready');
-            loadVacancies();
-        }, 1000);
+        // Start the app
+        console.log('Waiting for Firebase scripts to load...');
+        initApp();
     </script>
 </body>
 </html>
