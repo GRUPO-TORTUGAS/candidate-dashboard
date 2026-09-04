@@ -21,6 +21,11 @@
         .header { text-align: center; margin-bottom: 50px; border-bottom: 2px solid #e6cd87; padding-bottom: 30px; }
         .header h1 { font-size: 48px; color: #9c523d; margin-bottom: 12px; font-weight: 400; letter-spacing: 3px; }
         .header p { font-size: 14px; color: #81a1ab; letter-spacing: 2px; }
+        .back-link { margin-bottom: 30px; }
+        .back-link a { color: #9c523d; text-decoration: none; font-size: 13px; letter-spacing: 1px; }
+        .back-link a:hover { text-decoration: underline; }
+
+        /* Vacancies Grid */
         .vacancies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
         .vacancy-card { background: white; border-radius: 4px; padding: 40px; text-align: center; box-shadow: 0 2px 12px rgba(156, 82, 61, 0.08); transition: all 0.3s ease; border: 1px solid #f0e8e0; cursor: pointer; }
         .vacancy-card:hover { box-shadow: 0 8px 24px rgba(156, 82, 61, 0.15); transform: translateY(-4px); }
@@ -30,8 +35,21 @@
         .vacancy-label { font-size: 12px; color: #999; letter-spacing: 1px; margin-bottom: 24px; }
         .vacancy-btn { padding: 12px 24px; background: #9c523d; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Bitter', serif; font-size: 13px; letter-spacing: 1px; font-weight: 600; transition: all 0.3s ease; }
         .vacancy-btn:hover { background: #7d4230; }
+
+        /* Candidates Grid */
+        .candidates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .candidate-card { background: white; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 12px rgba(156, 82, 61, 0.08); transition: all 0.3s ease; border: 1px solid #f0e8e0; position: relative; }
+        .candidate-card:hover { box-shadow: 0 8px 24px rgba(156, 82, 61, 0.15); transform: translateY(-4px); }
+        .card-photo { width: 100%; height: 200px; background: linear-gradient(135deg, #e6cd87 0%, #dd9973 100%); display: flex; align-items: center; justify-content: center; font-size: 60px; position: relative; }
+        .experience-badge { position: absolute; top: 12px; right: 12px; background: #9c523d; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .card-content { padding: 24px; }
+        .card-name { font-size: 18px; font-weight: 700; color: #9c523d; margin-bottom: 12px; }
+        .card-detail { font-size: 12px; color: #999; margin-bottom: 8px; }
+        .card-detail strong { color: #2c2c2c; }
+
         .loading { text-align: center; padding: 40px; font-size: 16px; color: #999; }
         .error { color: #d32f2f; padding: 20px; background: #ffebee; border-radius: 4px; margin: 20px 0; }
+        .empty { text-align: center; padding: 60px 20px; color: #999; font-size: 16px; }
     </style>
 </head>
 <body>
@@ -42,12 +60,16 @@
         </div>
         
         <div class="header">
-            <h1>CASA LAS TORTUGAS</h1>
-            <p>RECRUITMENT DASHBOARD</p>
+            <h1 id="pageTitle">CASA LAS TORTUGAS</h1>
+            <p id="pageSubtitle">RECRUITMENT DASHBOARD</p>
+        </div>
+        
+        <div id="backLinkContainer" class="back-link" style="display: none;">
+            <a href="/" onclick="router(); return false;">← Volver a vacantes</a>
         </div>
         
         <div id="mainContent">
-            <div class="loading">Cargando vacantes...</div>
+            <div class="loading">Cargando...</div>
         </div>
     </div>
 
@@ -57,109 +79,157 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <script>
-        console.log('Script starting...');
+        let db;
+        let currentPath = window.location.pathname;
 
-        function initApp() {
-            // Check if Firebase is available
+        const firebaseConfig = {
+            apiKey: "AIzaSyDTbSrn6XO7SfUvO3lJlMaH3nWgqKDPuBo",
+            authDomain: "casa-las-tortugas-clt.firebaseapp.com",
+            projectId: "casa-las-tortugas-clt",
+            storageBucket: "casa-las-tortugas-clt.appspot.com",
+            messagingSenderId: "920869175093",
+            appId: "1:920869175093:web:06f8c4a38c9889f4ee11f3"
+        };
+
+        const vacancies = [
+            { slug: 'gerente-operativo', name: 'Gerente Operativo', icon: '👔' },
+            { slug: 'recepcionista', name: 'Recepcionista', icon: '📞' },
+            { slug: 'ama-de-llaves', name: 'Ama de Llaves', icon: '🏠' }
+        ];
+
+        function initFirebase() {
             if (typeof firebase === 'undefined') {
-                console.log('Firebase not yet loaded, retrying in 100ms...');
-                setTimeout(initApp, 100);
+                setTimeout(initFirebase, 100);
                 return;
             }
 
-            console.log('Firebase is available, initializing app');
-
-            const firebaseConfig = {
-                apiKey: "AIzaSyDTbSrn6XO7SfUvO3lJlMaH3nWgqKDPuBo",
-                authDomain: "casa-las-tortugas-clt.firebaseapp.com",
-                projectId: "casa-las-tortugas-clt",
-                storageBucket: "casa-las-tortugas-clt.appspot.com",
-                messagingSenderId: "920869175093",
-                appId: "1:920869175093:web:06f8c4a38c9889f4ee11f3"
-            };
-
             try {
-                // Initialize Firebase
-                firebase.initializeApp(firebaseConfig);
-                const db = firebase.firestore();
-                console.log('Firebase 8.x initialized successfully');
-
-                // Vacancy data
-                const vacancies = [
-                    { slug: 'gerente-operativo', name: 'Gerente Operativo', icon: '👔' },
-                    { slug: 'recepcionista', name: 'Recepcionista', icon: '📞' },
-                    { slug: 'ama-de-llaves', name: 'Ama de Llaves', icon: '🏠' }
-                ];
-
-                async function loadVacancies() {
-                    try {
-                        console.log('Loading vacancies from Firestore...');
-                        const mainContent = document.getElementById('mainContent');
-                        let html = '<div class="vacancies-grid">';
-
-                        for (const vacancy of vacancies) {
-                            try {
-                                // Count candidates for this vacancy
-                                const snapshot = await db.collection('candidates')
-                                    .where('vacante', '==', vacancy.slug)
-                                    .get();
-                                const count = snapshot.size;
-                                console.log(`✓ ${vacancy.slug}: ${count} candidates`);
-
-                                html += `
-                                    <div class="vacancy-card" onclick="window.location.href='/dashboard/${vacancy.slug}'">
-                                        <div class="vacancy-icon">${vacancy.icon}</div>
-                                        <div class="vacancy-title">${vacancy.name}</div>
-                                        <div class="vacancy-count">${count}</div>
-                                        <div class="vacancy-label">candidatos en proceso</div>
-                                        <button class="vacancy-btn">Abrir dashboard</button>
-                                    </div>
-                                `;
-                            } catch (error) {
-                                console.error(`✗ Error loading ${vacancy.slug}:`, error.message);
-                                html += `
-                                    <div class="vacancy-card">
-                                        <div class="vacancy-icon">${vacancy.icon}</div>
-                                        <div class="vacancy-title">${vacancy.name}</div>
-                                        <div class="error" style="margin: 20px 0; font-size: 12px;">
-                                            Error: ${error.message}
-                                        </div>
-                                    </div>
-                                `;
-                            }
-                        }
-
-                        html += '</div>';
-                        mainContent.innerHTML = html;
-                        console.log('✓ Vacancies loaded successfully');
-                    } catch (error) {
-                        console.error('✗ Fatal error loading vacancies:', error);
-                        document.getElementById('mainContent').innerHTML = `
-                            <div class="error">
-                                <strong>Error al cargar vacantes:</strong><br>
-                                ${error.message}
-                            </div>
-                        `;
-                    }
+                if (firebase.apps.length === 0) {
+                    firebase.initializeApp(firebaseConfig);
                 }
-
-                // Load vacancies
-                loadVacancies();
-
-            } catch (error) {
-                console.error('✗ Firebase initialization error:', error);
-                document.getElementById('mainContent').innerHTML = `
-                    <div class="error">
-                        <strong>Error inicializando Firebase:</strong><br>
-                        ${error.message}
-                    </div>
-                `;
+                db = firebase.firestore();
+                console.log('✓ Firebase initialized');
+                router();
+            } catch (e) {
+                console.error('Firebase error:', e);
             }
         }
 
-        // Start the app
-        console.log('Waiting for Firebase scripts to load...');
-        initApp();
+        function router() {
+            currentPath = window.location.pathname;
+            console.log('Route:', currentPath);
+
+            document.getElementById('backLinkContainer').style.display = 'none';
+            document.getElementById('pageTitle').textContent = 'CASA LAS TORTUGAS';
+            document.getElementById('pageSubtitle').textContent = 'RECRUITMENT DASHBOARD';
+
+            // Match /dashboard/[slug]
+            const match = currentPath.match(/\/dashboard\/([a-z-]+)/);
+            
+            if (match) {
+                const slug = match[1];
+                loadVacancyDashboard(slug);
+                document.getElementById('backLinkContainer').style.display = 'block';
+            } else {
+                loadMasterDashboard();
+            }
+        }
+
+        async function loadMasterDashboard() {
+            try {
+                console.log('Loading master dashboard...');
+                const mainContent = document.getElementById('mainContent');
+                let html = '<div class="vacancies-grid">';
+
+                for (const vacancy of vacancies) {
+                    try {
+                        const snapshot = await db.collection('candidates')
+                            .where('vacante', '==', vacancy.slug)
+                            .get();
+                        const count = snapshot.size;
+
+                        html += `
+                            <div class="vacancy-card" onclick="window.location.href='/dashboard/${vacancy.slug}'">
+                                <div class="vacancy-icon">${vacancy.icon}</div>
+                                <div class="vacancy-title">${vacancy.name}</div>
+                                <div class="vacancy-count">${count}</div>
+                                <div class="vacancy-label">candidatos en proceso</div>
+                                <button class="vacancy-btn">Abrir dashboard</button>
+                            </div>
+                        `;
+                    } catch (error) {
+                        console.error(`Error loading ${vacancy.slug}:`, error);
+                    }
+                }
+
+                html += '</div>';
+                mainContent.innerHTML = html;
+            } catch (error) {
+                document.getElementById('mainContent').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function loadVacancyDashboard(slug) {
+            try {
+                console.log(`Loading vacancy dashboard: ${slug}`);
+                
+                const vacancy = vacancies.find(v => v.slug === slug);
+                if (!vacancy) {
+                    document.getElementById('mainContent').innerHTML = '<div class="error">Vacante no encontrada</div>';
+                    return;
+                }
+
+                document.getElementById('pageTitle').textContent = vacancy.name.toUpperCase();
+                document.getElementById('pageSubtitle').textContent = 'CASA LAS TORTUGAS — CANDIDATE EVALUATION';
+
+                const mainContent = document.getElementById('mainContent');
+                const snapshot = await db.collection('candidates')
+                    .where('vacante', '==', slug)
+                    .get();
+
+                if (snapshot.empty) {
+                    mainContent.innerHTML = '<div class="empty">No hay candidatos para esta vacante</div>';
+                    return;
+                }
+
+                let html = '<div class="candidates-grid">';
+
+                snapshot.forEach(doc => {
+                    const candidate = doc.data();
+                    const experience = candidate.experience || 0;
+
+                    html += `
+                        <div class="candidate-card">
+                            <div class="card-photo">
+                                ${candidate.name.charAt(0).toUpperCase()}
+                                <div class="experience-badge">${experience}y</div>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-name">${candidate.name}</div>
+                                <div class="card-detail"><strong>Email:</strong> ${candidate.email || 'N/A'}</div>
+                                <div class="card-detail"><strong>Teléfono:</strong> ${candidate.phone || 'N/A'}</div>
+                                <div class="card-detail"><strong>PMS:</strong> ${candidate.pms || 'N/A'}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                mainContent.innerHTML = html;
+                console.log(`✓ Loaded ${snapshot.size} candidates`);
+
+            } catch (error) {
+                console.error('Error loading vacancy:', error);
+                document.getElementById('mainContent').innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize
+        console.log('App starting...');
+        initFirebase();
+
+        // Handle browser back/forward
+        window.addEventListener('popstate', router);
     </script>
 </body>
 </html>
