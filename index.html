@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Casa Las Tortugas - Candidate Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-compat/storage.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -279,17 +279,23 @@
         let db, storage;
         
         function initializeFirebase() {
-            if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length === 0) {
+            if (typeof firebase !== 'undefined' && firebase.apps) {
                 try {
-                    const app = firebase.initializeApp(firebaseConfig);
+                    // Initialize Firebase
+                    if (firebase.apps.length === 0) {
+                        firebase.initializeApp(firebaseConfig);
+                    }
+                    
+                    // Get instances
                     db = firebase.firestore();
                     storage = firebase.storage();
+                    
                     console.log('✓ Firebase initialized');
                     window.initRouter();
                 } catch (e) {
                     console.error('Error initializing Firebase:', e);
                 }
-            } else if (typeof firebase === 'undefined') {
+            } else {
                 // Firebase not loaded yet, wait and retry
                 setTimeout(initializeFirebase, 100);
             }
@@ -299,7 +305,8 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initializeFirebase);
         } else {
-            initializeFirebase();
+            // Already loaded
+            setTimeout(initializeFirebase, 100);
         }
         
         // State
