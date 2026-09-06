@@ -301,12 +301,12 @@
             try {
                 const logoRef = storage.ref().child('cvs/CLT_Acronimo5.png');
                 logoRef.getDownloadURL().then(url => {
-                    document.getElementById('logoSection').innerHTML = `<img src="${url}" alt="CLT Logo" style="height: 80px;">`;
+                    document.getElementById('logoSection').innerHTML = `<img src="${url}" alt="CLT Logo" style="height: 80px; margin-bottom: 15px;">`;
                 }).catch(error => {
-                    console.log('Logo not found');
+                    console.log('Logo no encontrado, usando texto por defecto');
                 });
             } catch (error) {
-                console.log('Could not load logo');
+                console.log('Error cargando logo:', error);
             }
         }
 
@@ -704,8 +704,8 @@
                             <div class="competency-num">${idx + 1}</div>
                             ${comp}
                         </div>
-                        <div class="rating-buttons">
-                            ${[1,2,3,4,5].map(n => `<button class="rating-btn" data-comp="${comp}" data-rating="${n}" onclick="window.setRating(this.dataset.comp, this.dataset.rating)">${n}</button>`).join('')}
+                        <div class="rating-buttons" id="rating-${idx}">
+                            ${[1,2,3,4,5].map(n => `<button class="rating-btn" onclick="setRatingValue('${comp}', ${n}, ${idx})">${n}</button>`).join('')}
                         </div>
                     </div>
                 `;
@@ -720,12 +720,12 @@
             document.getElementById('ratingModal').classList.add('active');
         }
 
-        window.setRating = function(competency, rating) {
-            const buttons = document.querySelectorAll(`[data-comp="${competency}"]`);
-            buttons.forEach(btn => btn.classList.remove('active'));
+        function setRatingValue(competency, rating, idx) {
+            const container = document.getElementById(`rating-${idx}`);
+            container.querySelectorAll('.rating-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
-            window.currentRatings[competency] = parseInt(rating);
-        };
+            window.currentRatings[competency] = rating;
+        }
 
         async function saveRating() {
             if (Object.keys(window.currentRatings || {}).length === 0) {
