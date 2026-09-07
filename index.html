@@ -68,34 +68,34 @@
         .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .modal.active { display: flex; }
-        .modal-content { background: white; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; position: relative; animation: slideUp 0.4s ease; }
+        .modal-content { background: white; width: 100%; max-width: 900px; max-height: 85vh; overflow-y: auto; position: relative; animation: slideUp 0.4s ease; }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .modal-header-photo { width: 100%; height: 280px; background: linear-gradient(135deg, #e6cd87 0%, #d4a574 100%); display: flex; align-items: center; justify-content: center; font-size: 80px; position: relative; }
+        .modal-header-photo { width: 100%; height: 200px; background: linear-gradient(135deg, #e6cd87 0%, #d4a574 100%); display: flex; align-items: center; justify-content: center; font-size: 80px; position: relative; }
         .modal-header-photo img { width: 100%; height: 100%; object-fit: cover; }
         
-        .modal-header { background: linear-gradient(135deg, #3a3a3a 0%, #2d2d2d 100%); color: white; padding: 35px 40px; }
-        .modal-header h2 { font-size: 32px; margin-bottom: 8px; letter-spacing: 1px; font-weight: 600; }
-        .modal-header p { font-size: 13px; opacity: 0.85; letter-spacing: 0.5px; }
+        .modal-header { background: linear-gradient(135deg, #3a3a3a 0%, #2d2d2d 100%); color: white; padding: 25px 35px; }
+        .modal-header h2 { font-size: 26px; margin-bottom: 6px; letter-spacing: 0.5px; font-weight: 600; }
+        .modal-header p { font-size: 12px; opacity: 0.8; letter-spacing: 0.3px; }
         
-        .modal-body { padding: 45px 40px; }
-        .modal-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 25px; margin-bottom: 40px; }
-        .stat-box { background: #f9f6f1; padding: 25px; text-align: center; border: 1px solid #f0ebe5; }
+        .modal-body { padding: 30px 35px; }
+        .modal-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-box { background: #f9f6f1; padding: 18px; text-align: center; border: 1px solid #f0ebe5; }
         .stat-label { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
-        .stat-value { font-size: 32px; color: #9c523d; font-weight: 700; }
+        .stat-value { font-size: 28px; color: #9c523d; font-weight: 700; }
         .stat-subvalue { font-size: 12px; color: #777; margin-top: 6px; }
         
         .detail-section { margin-bottom: 32px; }
-        .detail-label { font-size: 11px; color: #999; margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
-        .detail-value { font-size: 15px; color: #2d2d2d; line-height: 1.6; }
+        .detail-label { font-size: 10px; color: #999; margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; font-weight: 700; }
+        .detail-value { font-size: 13px; color: #2d2d2d; line-height: 1.5; }
         
-        .ratings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .rating-item { background: #f9f6f1; padding: 18px; border-left: 3px solid #9c523d; }
-        .rating-rater { font-size: 12px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px; }
-        .rating-scores { font-size: 12px; color: #555; line-height: 1.8; }
+        .ratings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .rating-item { background: #f9f6f1; padding: 12px; border-left: 3px solid #9c523d; }
+        .rating-rater { font-size: 11px; font-weight: 700; color: #2d2d2d; margin-bottom: 8px; }
+        .rating-scores { font-size: 11px; color: #555; line-height: 1.5; }
         
-        .modal-actions { display: flex; gap: 15px; padding: 30px 40px; border-top: 1px solid #f0ebe5; background: #fdfbf8; }
-        .btn { padding: 13px 32px; border: none; cursor: pointer; font-family: 'Bitter', serif; font-size: 12px; letter-spacing: 1px; font-weight: 600; text-transform: uppercase; transition: all 0.3s; }
+        .modal-actions { display: flex; gap: 15px; padding: 20px 35px; border-top: 1px solid #f0ebe5; background: #fdfbf8; }
+        .btn { padding: 11px 24px; border: none; cursor: pointer; font-family: 'Bitter', serif; font-size: 11px; letter-spacing: 0.5px; font-weight: 600; text-transform: uppercase; transition: all 0.3s; }
         .btn-primary { background: #9c523d; color: white; }
         .btn-primary:hover { background: #7d3d2d; }
         .btn-secondary { background: white; color: #9c523d; border: 2px solid #9c523d; }
@@ -225,7 +225,7 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>PMS</label>
+                        <label>Software/Programa</label>
                         <input type="text" id="editPms">
                     </div>
                     <div class="form-group">
@@ -612,7 +612,7 @@
                                 <div class="card-name">${c.name}</div>
                                 <div class="card-detail"><strong>Email:</strong> ${c.email || 'N/A'}</div>
                                 <div class="card-detail"><strong>Teléfono:</strong> ${c.phone || 'N/A'}</div>
-                                <div class="card-detail"><strong>PMS:</strong> ${c.pms || 'N/A'}</div>
+                                <div class="card-detail"><strong>Software:</strong> ${c.pms || 'N/A'}</div>
                                 <div class="card-avg">
                                     <div class="card-avg-label">Promedio</div>
                                     <div class="card-avg-score">${avgRating}</div>
@@ -660,8 +660,8 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>PMS</label>
-                            <input type="text" id="newPms" placeholder="ej: Opera, Mews">
+                            <label>Software/Programa</label>
+                            <input type="text" id="newPms" placeholder="ej: Opera, Mews, SAP">
                         </div>
                         <div class="form-group">
                             <label>Disponibilidad</label>
@@ -894,64 +894,68 @@
                     </div>
                 </div>
 
-                <div class="detail-section">
-                    <div class="detail-label">Email</div>
-                    <div class="detail-value"><a href="mailto:${candidate.email}" style="color: #9c523d; text-decoration: none;">${candidate.email || 'N/A'}</a></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
+                    <div>
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value" style="margin-bottom: 16px;"><a href="mailto:${candidate.email}" style="color: #9c523d; text-decoration: none; word-break: break-all;">${candidate.email || 'N/A'}</a></div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Teléfono</div>
+                        <div class="detail-value" style="margin-bottom: 16px;"><a href="tel:${candidate.phone}" style="color: #9c523d; text-decoration: none;">${candidate.phone || 'N/A'}</a></div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Software/Programa</div>
+                        <div class="detail-value" style="margin-bottom: 16px;">${candidate.pms || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Disponibilidad</div>
+                        <div class="detail-value" style="margin-bottom: 16px;">${candidate.availability || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Nacionalidad</div>
+                        <div class="detail-value" style="margin-bottom: 16px;">${candidate.nationality || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Idiomas</div>
+                        <div class="detail-value" style="margin-bottom: 16px;">${candidate.languages || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Salario esperado</div>
+                        <div class="detail-value" style="margin-bottom: 16px;">${candidate.salary || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">LinkedIn</div>
+                        <div class="detail-value" style="margin-bottom: 16px;">${candidate.linkedIn ? `<a href="${candidate.linkedIn}" target="_blank" style="color: #9c523d; text-decoration: none; word-break: break-all;">${candidate.linkedIn}</a>` : 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Certificaciones</div>
+                        <div class="detail-value" style="margin-bottom: 16px;">${candidate.certifications || 'N/A'}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Referencias</div>
+                        <div class="detail-value" style="margin-bottom: 16px;">${candidate.references || 'N/A'}</div>
+                    </div>
                 </div>
-                <div class="detail-section">
-                    <div class="detail-label">Teléfono</div>
-                    <div class="detail-value"><a href="tel:${candidate.phone}" style="color: #9c523d; text-decoration: none;">${candidate.phone || 'N/A'}</a></div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">PMS Conocido</div>
-                    <div class="detail-value">${candidate.pms || 'N/A'}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Disponibilidad</div>
-                    <div class="detail-value">${candidate.availability || 'N/A'}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Nacionalidad</div>
-                    <div class="detail-value">${candidate.nationality || 'N/A'}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Idiomas</div>
-                    <div class="detail-value">${candidate.languages || 'N/A'}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Salario esperado</div>
-                    <div class="detail-value">${candidate.salary || 'N/A'}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">LinkedIn</div>
-                    <div class="detail-value">${candidate.linkedIn ? `<a href="${candidate.linkedIn}" target="_blank" style="color: #9c523d; text-decoration: none;">${candidate.linkedIn}</a>` : 'N/A'}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Certificaciones</div>
-                    <div class="detail-value">${candidate.certifications || 'N/A'}</div>
-                </div>
-                <div class="detail-section">
-                    <div class="detail-label">Referencias</div>
-                    <div class="detail-value">${candidate.references || 'N/A'}</div>
-                </div>
-                <div class="detail-section">
+
+                <div style="background: #f9f6f1; padding: 16px; margin-bottom: 20px; border-left: 3px solid #9c523d;">
                     <div class="detail-label">Notas del reclutador</div>
                     <div class="detail-value">${candidate.recruiterNotes || 'N/A'}</div>
                 </div>
-                <div class="detail-section">
-                    <div class="detail-label">Comentarios</div>
+
+                <div style="background: #f9f6f1; padding: 16px; margin-bottom: 20px; border-left: 3px solid #9c523d;">
+                    <div class="detail-label">Comentarios generales</div>
                     <div class="detail-value">${candidate.comments || 'N/A'}</div>
                 </div>
 
-                ${candidate.interview1?.interviewer ? `<div class="detail-section" style="background: #f9f6f1; padding: 20px; border-left: 3px solid #9c523d; margin-top: 30px;"><div style="font-size: 13px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px;">Entrevista 1</div><div style="font-size: 12px; color: #555; line-height: 1.8;"><strong>Entrevistador:</strong> ${candidate.interview1?.interviewer || 'N/A'}<br><strong>Fecha:</strong> ${candidate.interview1?.date || 'N/A'}<br><strong>Comentarios:</strong> ${candidate.interview1?.comments || 'N/A'}<br><strong>Resumen:</strong> ${candidate.interview1?.resume || 'N/A'}</div></div>` : ''}
-
-                ${candidate.interview2?.interviewer ? `<div class="detail-section" style="background: #f9f6f1; padding: 20px; border-left: 3px solid #9c523d;"><div style="font-size: 13px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px;">Entrevista 2</div><div style="font-size: 12px; color: #555; line-height: 1.8;"><strong>Entrevistador:</strong> ${candidate.interview2?.interviewer || 'N/A'}<br><strong>Fecha:</strong> ${candidate.interview2?.date || 'N/A'}<br><strong>Comentarios:</strong> ${candidate.interview2?.comments || 'N/A'}<br><strong>Resumen:</strong> ${candidate.interview2?.resume || 'N/A'}</div></div>` : ''}
-
-                ${candidate.interview3?.interviewer ? `<div class="detail-section" style="background: #f9f6f1; padding: 20px; border-left: 3px solid #9c523d;"><div style="font-size: 13px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px;">Entrevista 3</div><div style="font-size: 12px; color: #555; line-height: 1.8;"><strong>Entrevistador:</strong> ${candidate.interview3?.interviewer || 'N/A'}<br><strong>Fecha:</strong> ${candidate.interview3?.date || 'N/A'}<br><strong>Comentarios:</strong> ${candidate.interview3?.comments || 'N/A'}<br><strong>Resumen:</strong> ${candidate.interview3?.resume || 'N/A'}</div></div>` : ''}
+                ${candidate.interview1?.interviewer || candidate.interview2?.interviewer || candidate.interview3?.interviewer ? `<div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #f0ebe5;">` : ''}
+                    ${candidate.interview1?.interviewer ? `<div style="background: #f5f3f0; padding: 14px; margin-bottom: 12px; border-left: 3px solid #9c523d; font-size: 12px;"><div style="font-weight: 700; color: #2d2d2d; margin-bottom: 8px;">📅 Entrevista 1 - ${candidate.interview1?.date || 'S/F'}</div><div style="color: #555; line-height: 1.6;"><strong>Entrevistador:</strong> ${candidate.interview1?.interviewer || 'N/A'}<br><strong>Comentarios:</strong> ${candidate.interview1?.comments || 'N/A'}<br><strong>Resumen:</strong> ${candidate.interview1?.resume || 'N/A'}</div></div>` : ''}
+                    ${candidate.interview2?.interviewer ? `<div style="background: #f5f3f0; padding: 14px; margin-bottom: 12px; border-left: 3px solid #9c523d; font-size: 12px;"><div style="font-weight: 700; color: #2d2d2d; margin-bottom: 8px;">📅 Entrevista 2 - ${candidate.interview2?.date || 'S/F'}</div><div style="color: #555; line-height: 1.6;"><strong>Entrevistador:</strong> ${candidate.interview2?.interviewer || 'N/A'}<br><strong>Comentarios:</strong> ${candidate.interview2?.comments || 'N/A'}<br><strong>Resumen:</strong> ${candidate.interview2?.resume || 'N/A'}</div></div>` : ''}
+                    ${candidate.interview3?.interviewer ? `<div style="background: #f5f3f0; padding: 14px; margin-bottom: 12px; border-left: 3px solid #9c523d; font-size: 12px;"><div style="font-weight: 700; color: #2d2d2d; margin-bottom: 8px;">📅 Entrevista 3 - ${candidate.interview3?.date || 'S/F'}</div><div style="color: #555; line-height: 1.6;"><strong>Entrevistador:</strong> ${candidate.interview3?.interviewer || 'N/A'}<br><strong>Comentarios:</strong> ${candidate.interview3?.comments || 'N/A'}<br><strong>Resumen:</strong> ${candidate.interview3?.resume || 'N/A'}</div></div>` : ''}
+                ${candidate.interview1?.interviewer || candidate.interview2?.interviewer || candidate.interview3?.interviewer ? `</div>` : ''}
 
                 ${ratingsHTML}
 
-                ${candidate.cvUrl ? `<div class="detail-section"><a href="${candidate.cvUrl}" target="_blank" style="display: inline-block; padding: 12px 28px; background: #9c523d; color: white; text-decoration: none; font-weight: 600; letter-spacing: 1px; font-family: Bitter; font-size: 12px; text-transform: uppercase;">Descargar CV</a></div>` : ''}
+                ${candidate.cvUrl ? `<div style="margin-top: 20px; text-align: center;"><a href="${candidate.cvUrl}" target="_blank" style="display: inline-block; padding: 12px 28px; background: #9c523d; color: white; text-decoration: none; font-weight: 600; letter-spacing: 1px; font-family: Bitter; font-size: 12px; text-transform: uppercase;">📄 Descargar CV</a></div>` : ''}
             `;
 
             document.getElementById('modalActions').innerHTML = `
