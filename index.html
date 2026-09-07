@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Casa Las Tortugas V2 - Recruitment Dashboard</title>
+    <title>Casa Las Tortugas - Recruitment Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -232,6 +233,121 @@
                         <input type="text" id="editAvailability">
                     </div>
                 </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nacionalidad</label>
+                        <input type="text" id="editNationality">
+                    </div>
+                    <div class="form-group">
+                        <label>Idiomas</label>
+                        <input type="text" id="editLanguages">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Salario esperado</label>
+                        <input type="text" id="editSalary">
+                    </div>
+                    <div class="form-group">
+                        <label>LinkedIn</label>
+                        <input type="text" id="editLinkedIn">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Certificaciones</label>
+                        <input type="text" id="editCertifications">
+                    </div>
+                    <div class="form-group">
+                        <label>Referencias</label>
+                        <input type="text" id="editReferences">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Notas del reclutador</label>
+                        <input type="text" id="editRecruiterNotes">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Comentarios</label>
+                        <input type="text" id="editComments">
+                    </div>
+                </div>
+
+                <h3 style="font-size: 14px; color: #2d2d2d; margin-top: 25px; margin-bottom: 15px; letter-spacing: 0.5px; font-weight: 600;">Entrevista 1</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Entrevistador</label>
+                        <input type="text" id="editInterview1Interviewer">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="editInterview1Date">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Comentarios</label>
+                        <input type="text" id="editInterview1Comments">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Resumen</label>
+                        <input type="text" id="editInterview1Resume">
+                    </div>
+                </div>
+
+                <h3 style="font-size: 14px; color: #2d2d2d; margin-top: 25px; margin-bottom: 15px; letter-spacing: 0.5px; font-weight: 600;">Entrevista 2</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Entrevistador</label>
+                        <input type="text" id="editInterview2Interviewer">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="editInterview2Date">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Comentarios</label>
+                        <input type="text" id="editInterview2Comments">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Resumen</label>
+                        <input type="text" id="editInterview2Resume">
+                    </div>
+                </div>
+
+                <h3 style="font-size: 14px; color: #2d2d2d; margin-top: 25px; margin-bottom: 15px; letter-spacing: 0.5px; font-weight: 600;">Entrevista 3</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Entrevistador</label>
+                        <input type="text" id="editInterview3Interviewer">
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="editInterview3Date">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Comentarios</label>
+                        <input type="text" id="editInterview3Comments">
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Resumen</label>
+                        <input type="text" id="editInterview3Resume">
+                    </div>
+                </div>
+
                 <div class="form-row full">
                     <div class="form-group">
                         <label>Foto de perfil</label>
@@ -295,6 +411,8 @@
             messagingSenderId: "944487796645",
             appId: "1:944487796645:web:a741565ab36236c0d9a24c"
         };
+
+
 
         function loadLogo() {
             try {
@@ -550,6 +668,121 @@
                             <input type="text" id="newAvailability" placeholder="ej: Inmediato">
                         </div>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nacionalidad</label>
+                            <input type="text" id="newNationality" placeholder="ej: México">
+                        </div>
+                        <div class="form-group">
+                            <label>Idiomas</label>
+                            <input type="text" id="newLanguages" placeholder="ej: Español, Inglés">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Salario esperado</label>
+                            <input type="text" id="newSalary" placeholder="ej: $50,000 - $60,000">
+                        </div>
+                        <div class="form-group">
+                            <label>LinkedIn</label>
+                            <input type="text" id="newLinkedIn" placeholder="https://linkedin.com/in/...">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Certificaciones</label>
+                            <input type="text" id="newCertifications" placeholder="ej: PMS Opera, Chef Internacional">
+                        </div>
+                        <div class="form-group">
+                            <label>Referencias</label>
+                            <input type="text" id="newReferences" placeholder="Nombre, empresa, teléfono">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Notas del reclutador</label>
+                            <input type="text" id="newRecruiterNotes" placeholder="Observaciones internas">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Comentarios</label>
+                            <input type="text" id="newComments" placeholder="Comentarios adicionales">
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 16px; color: #2d2d2d; margin-top: 30px; margin-bottom: 20px; letter-spacing: 0.5px; font-weight: 600;">Entrevista 1</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Entrevistador</label>
+                            <input type="text" id="newInterview1Interviewer" placeholder="Nombre de quien entrevistó">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="date" id="newInterview1Date">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Comentarios</label>
+                            <input type="text" id="newInterview1Comments" placeholder="Notas de la entrevista">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Resumen</label>
+                            <input type="text" id="newInterview1Resume" placeholder="Resumen ejecutivo">
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 16px; color: #2d2d2d; margin-top: 30px; margin-bottom: 20px; letter-spacing: 0.5px; font-weight: 600;">Entrevista 2</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Entrevistador</label>
+                            <input type="text" id="newInterview2Interviewer" placeholder="Nombre de quien entrevistó">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="date" id="newInterview2Date">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Comentarios</label>
+                            <input type="text" id="newInterview2Comments" placeholder="Notas de la entrevista">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Resumen</label>
+                            <input type="text" id="newInterview2Resume" placeholder="Resumen ejecutivo">
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 16px; color: #2d2d2d; margin-top: 30px; margin-bottom: 20px; letter-spacing: 0.5px; font-weight: 600;">Entrevista 3</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Entrevistador</label>
+                            <input type="text" id="newInterview3Interviewer" placeholder="Nombre de quien entrevistó">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha</label>
+                            <input type="date" id="newInterview3Date">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Comentarios</label>
+                            <input type="text" id="newInterview3Comments" placeholder="Notas de la entrevista">
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
+                            <label>Resumen</label>
+                            <input type="text" id="newInterview3Resume" placeholder="Resumen ejecutivo">
+                        </div>
+                    </div>
+
                     <div class="form-row full">
                         <div class="form-group">
                             <label>Foto de perfil</label>
@@ -677,6 +910,44 @@
                     <div class="detail-label">Disponibilidad</div>
                     <div class="detail-value">${candidate.availability || 'N/A'}</div>
                 </div>
+                <div class="detail-section">
+                    <div class="detail-label">Nacionalidad</div>
+                    <div class="detail-value">${candidate.nationality || 'N/A'}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">Idiomas</div>
+                    <div class="detail-value">${candidate.languages || 'N/A'}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">Salario esperado</div>
+                    <div class="detail-value">${candidate.salary || 'N/A'}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">LinkedIn</div>
+                    <div class="detail-value">${candidate.linkedIn ? `<a href="${candidate.linkedIn}" target="_blank" style="color: #9c523d; text-decoration: none;">${candidate.linkedIn}</a>` : 'N/A'}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">Certificaciones</div>
+                    <div class="detail-value">${candidate.certifications || 'N/A'}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">Referencias</div>
+                    <div class="detail-value">${candidate.references || 'N/A'}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">Notas del reclutador</div>
+                    <div class="detail-value">${candidate.recruiterNotes || 'N/A'}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">Comentarios</div>
+                    <div class="detail-value">${candidate.comments || 'N/A'}</div>
+                </div>
+
+                ${candidate.interview1?.interviewer ? `<div class="detail-section" style="background: #f9f6f1; padding: 20px; border-left: 3px solid #9c523d; margin-top: 30px;"><div style="font-size: 13px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px;">Entrevista 1</div><div style="font-size: 12px; color: #555; line-height: 1.8;"><strong>Entrevistador:</strong> ${candidate.interview1?.interviewer || 'N/A'}<br><strong>Fecha:</strong> ${candidate.interview1?.date || 'N/A'}<br><strong>Comentarios:</strong> ${candidate.interview1?.comments || 'N/A'}<br><strong>Resumen:</strong> ${candidate.interview1?.resume || 'N/A'}</div></div>` : ''}
+
+                ${candidate.interview2?.interviewer ? `<div class="detail-section" style="background: #f9f6f1; padding: 20px; border-left: 3px solid #9c523d;"><div style="font-size: 13px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px;">Entrevista 2</div><div style="font-size: 12px; color: #555; line-height: 1.8;"><strong>Entrevistador:</strong> ${candidate.interview2?.interviewer || 'N/A'}<br><strong>Fecha:</strong> ${candidate.interview2?.date || 'N/A'}<br><strong>Comentarios:</strong> ${candidate.interview2?.comments || 'N/A'}<br><strong>Resumen:</strong> ${candidate.interview2?.resume || 'N/A'}</div></div>` : ''}
+
+                ${candidate.interview3?.interviewer ? `<div class="detail-section" style="background: #f9f6f1; padding: 20px; border-left: 3px solid #9c523d;"><div style="font-size: 13px; font-weight: 700; color: #2d2d2d; margin-bottom: 12px;">Entrevista 3</div><div style="font-size: 12px; color: #555; line-height: 1.8;"><strong>Entrevistador:</strong> ${candidate.interview3?.interviewer || 'N/A'}<br><strong>Fecha:</strong> ${candidate.interview3?.date || 'N/A'}<br><strong>Comentarios:</strong> ${candidate.interview3?.comments || 'N/A'}<br><strong>Resumen:</strong> ${candidate.interview3?.resume || 'N/A'}</div></div>` : ''}
 
                 ${ratingsHTML}
 
@@ -766,6 +1037,29 @@
             document.getElementById('editExperience').value = candidate.experience || 0;
             document.getElementById('editPms').value = candidate.pms || '';
             document.getElementById('editAvailability').value = candidate.availability || '';
+            document.getElementById('editNationality').value = candidate.nationality || '';
+            document.getElementById('editLanguages').value = candidate.languages || '';
+            document.getElementById('editSalary').value = candidate.salary || '';
+            document.getElementById('editLinkedIn').value = candidate.linkedIn || '';
+            document.getElementById('editCertifications').value = candidate.certifications || '';
+            document.getElementById('editReferences').value = candidate.references || '';
+            document.getElementById('editRecruiterNotes').value = candidate.recruiterNotes || '';
+            document.getElementById('editComments').value = candidate.comments || '';
+            
+            document.getElementById('editInterview1Interviewer').value = candidate.interview1?.interviewer || '';
+            document.getElementById('editInterview1Date').value = candidate.interview1?.date || '';
+            document.getElementById('editInterview1Comments').value = candidate.interview1?.comments || '';
+            document.getElementById('editInterview1Resume').value = candidate.interview1?.resume || '';
+            
+            document.getElementById('editInterview2Interviewer').value = candidate.interview2?.interviewer || '';
+            document.getElementById('editInterview2Date').value = candidate.interview2?.date || '';
+            document.getElementById('editInterview2Comments').value = candidate.interview2?.comments || '';
+            document.getElementById('editInterview2Resume').value = candidate.interview2?.resume || '';
+            
+            document.getElementById('editInterview3Interviewer').value = candidate.interview3?.interviewer || '';
+            document.getElementById('editInterview3Date').value = candidate.interview3?.date || '';
+            document.getElementById('editInterview3Comments').value = candidate.interview3?.comments || '';
+            document.getElementById('editInterview3Resume').value = candidate.interview3?.resume || '';
 
             window.currentEditDocId = docId;
             closeModal();
@@ -804,6 +1098,32 @@
                     experience: parseInt(document.getElementById('editExperience').value) || 0,
                     pms: document.getElementById('editPms').value.trim(),
                     availability: document.getElementById('editAvailability').value.trim(),
+                    nationality: document.getElementById('editNationality').value.trim(),
+                    languages: document.getElementById('editLanguages').value.trim(),
+                    salary: document.getElementById('editSalary').value.trim(),
+                    linkedIn: document.getElementById('editLinkedIn').value.trim(),
+                    certifications: document.getElementById('editCertifications').value.trim(),
+                    references: document.getElementById('editReferences').value.trim(),
+                    recruiterNotes: document.getElementById('editRecruiterNotes').value.trim(),
+                    comments: document.getElementById('editComments').value.trim(),
+                    interview1: {
+                        interviewer: document.getElementById('editInterview1Interviewer').value.trim(),
+                        date: document.getElementById('editInterview1Date').value,
+                        comments: document.getElementById('editInterview1Comments').value.trim(),
+                        resume: document.getElementById('editInterview1Resume').value.trim()
+                    },
+                    interview2: {
+                        interviewer: document.getElementById('editInterview2Interviewer').value.trim(),
+                        date: document.getElementById('editInterview2Date').value,
+                        comments: document.getElementById('editInterview2Comments').value.trim(),
+                        resume: document.getElementById('editInterview2Resume').value.trim()
+                    },
+                    interview3: {
+                        interviewer: document.getElementById('editInterview3Interviewer').value.trim(),
+                        date: document.getElementById('editInterview3Date').value,
+                        comments: document.getElementById('editInterview3Comments').value.trim(),
+                        resume: document.getElementById('editInterview3Resume').value.trim()
+                    },
                     photoUrl: photoUrl,
                     cvUrl: cvUrl
                 });
@@ -844,6 +1164,32 @@
                     experience: parseInt(document.getElementById('newExperience').value) || 0,
                     pms: document.getElementById('newPms').value.trim(),
                     availability: document.getElementById('newAvailability').value.trim(),
+                    nationality: document.getElementById('newNationality').value.trim(),
+                    languages: document.getElementById('newLanguages').value.trim(),
+                    salary: document.getElementById('newSalary').value.trim(),
+                    linkedIn: document.getElementById('newLinkedIn').value.trim(),
+                    certifications: document.getElementById('newCertifications').value.trim(),
+                    references: document.getElementById('newReferences').value.trim(),
+                    recruiterNotes: document.getElementById('newRecruiterNotes').value.trim(),
+                    comments: document.getElementById('newComments').value.trim(),
+                    interview1: {
+                        interviewer: document.getElementById('newInterview1Interviewer').value.trim(),
+                        date: document.getElementById('newInterview1Date').value,
+                        comments: document.getElementById('newInterview1Comments').value.trim(),
+                        resume: document.getElementById('newInterview1Resume').value.trim()
+                    },
+                    interview2: {
+                        interviewer: document.getElementById('newInterview2Interviewer').value.trim(),
+                        date: document.getElementById('newInterview2Date').value,
+                        comments: document.getElementById('newInterview2Comments').value.trim(),
+                        resume: document.getElementById('newInterview2Resume').value.trim()
+                    },
+                    interview3: {
+                        interviewer: document.getElementById('newInterview3Interviewer').value.trim(),
+                        date: document.getElementById('newInterview3Date').value,
+                        comments: document.getElementById('newInterview3Comments').value.trim(),
+                        resume: document.getElementById('newInterview3Resume').value.trim()
+                    },
                     cvUrl: cvUrl,
                     photoUrl: photoUrl,
                     vacante: window.currentVacancy,
@@ -857,6 +1203,26 @@
                 document.getElementById('newExperience').value = '';
                 document.getElementById('newPms').value = '';
                 document.getElementById('newAvailability').value = '';
+                document.getElementById('newNationality').value = '';
+                document.getElementById('newLanguages').value = '';
+                document.getElementById('newSalary').value = '';
+                document.getElementById('newLinkedIn').value = '';
+                document.getElementById('newCertifications').value = '';
+                document.getElementById('newReferences').value = '';
+                document.getElementById('newRecruiterNotes').value = '';
+                document.getElementById('newComments').value = '';
+                document.getElementById('newInterview1Interviewer').value = '';
+                document.getElementById('newInterview1Date').value = '';
+                document.getElementById('newInterview1Comments').value = '';
+                document.getElementById('newInterview1Resume').value = '';
+                document.getElementById('newInterview2Interviewer').value = '';
+                document.getElementById('newInterview2Date').value = '';
+                document.getElementById('newInterview2Comments').value = '';
+                document.getElementById('newInterview2Resume').value = '';
+                document.getElementById('newInterview3Interviewer').value = '';
+                document.getElementById('newInterview3Date').value = '';
+                document.getElementById('newInterview3Comments').value = '';
+                document.getElementById('newInterview3Resume').value = '';
                 document.getElementById('newCV').value = '';
                 document.getElementById('newPhoto').value = '';
 
