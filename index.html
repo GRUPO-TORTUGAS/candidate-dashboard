@@ -357,6 +357,15 @@
 
                 <div class="form-row full">
                     <div class="form-group">
+                        <label>Estado</label>
+                        <select id="editStatus">
+                            <option value="activo">En proceso</option>
+                            <option value="descontinuado">Descontinuado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
                         <label>Foto de perfil</label>
                         <input type="file" id="editPhoto" accept="image/*">
                     </div>
@@ -543,6 +552,19 @@
                         const snapshot = await db.collection('candidates')
                             .where('vacante', '==', vacancy.slug)
                             .get();
+                        
+                        let round1 = 0, round2 = 0, finalRound = 0, activos = 0, descontinuados = 0;
+                        
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (data.round === 'round1') round1++;
+                            else if (data.round === 'round2') round2++;
+                            else if (data.round === 'final') finalRound++;
+                            
+                            if (data.status === 'activo' || !data.status) activos++;
+                            else if (data.status === 'descontinuado') descontinuados++;
+                        });
+                        
                         const count = snapshot.size;
 
                         html += `
@@ -555,7 +577,25 @@
                                 </div>
                                 <div class="vacancy-title">${vacancy.name}</div>
                                 <div class="vacancy-count">${count}</div>
-                                <div class="vacancy-label">candidatos en proceso</div>
+                                <div class="vacancy-label">candidatos totales</div>
+                                
+                                <div style="background: #f7f5f2; padding: 12px; border-radius: 1px; margin-bottom: 14px; font-size: 11px; text-align: left;">
+                                    <div style="color: #9c523d; font-weight: 600; margin-bottom: 6px;">Rondas:</div>
+                                    <div style="color: #555; line-height: 1.6;">
+                                        <strong>Ronda 1:</strong> ${round1} &nbsp;&nbsp;
+                                        <strong>Ronda 2:</strong> ${round2} &nbsp;&nbsp;
+                                        <strong>Final:</strong> ${finalRound}
+                                    </div>
+                                </div>
+                                
+                                <div style="background: #f7f5f2; padding: 12px; border-radius: 1px; margin-bottom: 14px; font-size: 11px; text-align: left;">
+                                    <div style="color: #9c523d; font-weight: 600; margin-bottom: 6px;">Estado:</div>
+                                    <div style="color: #555; line-height: 1.6;">
+                                        <strong style="color: #6ba044;">✓ En proceso:</strong> ${activos}<br>
+                                        <strong style="color: #b8523d;">✕ Descontinuado:</strong> ${descontinuados}
+                                    </div>
+                                </div>
+                                
                                 <button class="vacancy-btn" onclick="window.location.href='/dashboard/${vacancy.slug}'" style="margin-bottom: 10px;">Abrir dashboard</button>
                                 <button class="vacancy-btn" onclick="deleteVacancy('${vacancy.id}')" style="background: white; color: #9c523d; border: 2px solid #9c523d; width: 100%; font-weight: 700;">Eliminar vacante</button>
                             </div>
@@ -792,6 +832,15 @@
 
                     <div class="form-row full">
                         <div class="form-group">
+                            <label>Estado</label>
+                            <select id="newStatus">
+                                <option value="activo">En proceso</option>
+                                <option value="descontinuado">Descontinuado</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row full">
+                        <div class="form-group">
                             <label>Foto de perfil</label>
                             <input type="file" id="newPhoto" accept="image/*">
                         </div>
@@ -956,6 +1005,13 @@
                     </div>
                 </div>
 
+                <div style="background: ${candidate.status === 'descontinuado' ? '#fff4f0' : '#f0faf8'}; padding: 14px; margin-bottom: 16px; border-left: 3px solid ${candidate.status === 'descontinuado' ? '#b8523d' : '#6ba044'};">
+                    <div class="info-label">Estado del candidato</div>
+                    <div class="info-value" style="font-weight: 600; color: ${candidate.status === 'descontinuado' ? '#b8523d' : '#6ba044'};">
+                        ${candidate.status === 'descontinuado' ? '✕ Descontinuado' : '✓ En proceso'}
+                    </div>
+                </div>
+
                 <div style="background: #f7f5f2; padding: 14px; margin-bottom: 16px; border-left: 2px solid #9c523d;">
                     <div class="info-label">Notas del reclutador</div>
                     <div class="info-value">${candidate.recruiterNotes || 'N/A'}</div>
@@ -1081,6 +1137,7 @@
             document.getElementById('editInterview3Date').value = candidate.interview3?.date || '';
             document.getElementById('editInterview3Comments').value = candidate.interview3?.comments || '';
             document.getElementById('editInterview3Resume').value = candidate.interview3?.resume || '';
+            document.getElementById('editStatus').value = candidate.status || 'activo';
 
             window.currentEditDocId = docId;
             closeModal();
@@ -1145,6 +1202,7 @@
                         comments: document.getElementById('editInterview3Comments').value.trim(),
                         resume: document.getElementById('editInterview3Resume').value.trim()
                     },
+                    status: document.getElementById('editStatus').value,
                     photoUrl: photoUrl,
                     cvUrl: cvUrl
                 });
@@ -1211,6 +1269,7 @@
                         comments: document.getElementById('newInterview3Comments').value.trim(),
                         resume: document.getElementById('newInterview3Resume').value.trim()
                     },
+                    status: document.getElementById('newStatus').value,
                     cvUrl: cvUrl,
                     photoUrl: photoUrl,
                     vacante: window.currentVacancy,
@@ -1244,6 +1303,7 @@
                 document.getElementById('newInterview3Date').value = '';
                 document.getElementById('newInterview3Comments').value = '';
                 document.getElementById('newInterview3Resume').value = '';
+                document.getElementById('newStatus').value = 'activo';
                 document.getElementById('newCV').value = '';
                 document.getElementById('newPhoto').value = '';
 
