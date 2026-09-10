@@ -857,10 +857,6 @@
             const candidate = window.currentCandidates.find(c => c.id === docId);
             if (!candidate) return;
 
-            document.getElementById('modalPhoto').innerHTML = candidate.photoUrl 
-                ? `<img src="${candidate.photoUrl}" alt="${candidate.name}">`
-                : candidate.name.charAt(0).toUpperCase();
-            
             document.getElementById('modalName').textContent = candidate.name;
             
             const avgRating = calculateAverage(candidate.ratings);
@@ -884,9 +880,13 @@
                 ratingsHTML += '</div></div>';
             }
 
+            const photoHTML = candidate.photoUrl 
+                ? `<img src="${candidate.photoUrl}" alt="${candidate.name}">`
+                : candidate.name.charAt(0).toUpperCase();
+
             document.getElementById('modalBody').innerHTML = `
                 <div class="profile-wrapper">
-                    <div class="profile-photo" id="modalPhoto"></div>
+                    <div class="profile-photo">${photoHTML}</div>
                     <div class="profile-info">
                         <div class="modal-stats" style="grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 0;">
                             <div class="stat-box">
