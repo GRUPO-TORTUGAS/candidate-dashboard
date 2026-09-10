@@ -51,9 +51,11 @@
         .candidates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 24px; }
         .candidate-card { background: white; overflow: hidden; box-shadow: 0 4px 16px rgba(156, 82, 61, 0.07); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #f5f2ef; border-radius: 2px; }
         .candidate-card:hover { box-shadow: 0 12px 32px rgba(156, 82, 61, 0.12); transform: translateY(-3px); }
-        .card-photo { width: 100%; height: 240px; background: linear-gradient(135deg, #e6cd87 0%, #d4a574 100%); display: flex; align-items: center; justify-content: center; font-size: 60px; position: relative; }
+        .card-photo { width: 100%; height: 240px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 60px; position: relative; }
         .card-photo img { width: 100%; height: 100%; object-fit: contain; background: linear-gradient(135deg, #e6cd87 0%, #d4a574 100%); }
         .experience-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(135deg, #9c523d 0%, #8a4530 100%); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; box-shadow: 0 6px 16px rgba(156, 82, 61, 0.3); }
+        .status-badge { position: absolute; top: 12px; left: 12px; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .round-badge { position: absolute; bottom: 12px; left: 12px; background: rgba(41, 41, 41, 0.9); color: white; padding: 6px 10px; border-radius: 2px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .card-content { padding: 26px; }
         .card-name { font-size: 17px; font-weight: 500; color: #282828; margin-bottom: 12px; letter-spacing: 0.3px; }
         .card-detail { font-size: 12px; color: #888; margin-bottom: 7px; line-height: 1.5; }
@@ -72,7 +74,7 @@
         .modal-content { background: white; width: 100%; max-width: 900px; max-height: 85vh; overflow-y: auto; position: relative; animation: slideUp 0.4s ease; }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        .modal-header-photo { width: 100%; height: 140px; background: linear-gradient(135deg, #e6cd87 0%, #d4a574 100%); display: flex; align-items: center; justify-content: center; font-size: 60px; position: relative; }
+        .modal-header-photo { width: 100%; height: 140px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; font-size: 60px; position: relative; }
         .modal-header-photo img { width: 100%; height: 100%; object-fit: contain; background: #f7f5f2; }
         
         .modal-header { background: linear-gradient(135deg, #282828 0%, #1f1f1f 100%); color: white; padding: 28px 35px; }
@@ -81,7 +83,7 @@
         
         .modal-body { padding: 30px 35px; }
         .profile-wrapper { display: grid; grid-template-columns: 140px 1fr; gap: 20px; margin-bottom: 20px; align-items: start; }
-        .profile-photo { width: 140px; height: 160px; background: linear-gradient(135deg, #e6cd87 0%, #d4a574 100%); border-radius: 1px; display: flex; align-items: center; justify-content: center; font-size: 50px; flex-shrink: 0; }
+        .profile-photo { width: 140px; height: 160px; background: #1a1a1a; border-radius: 1px; display: flex; align-items: center; justify-content: center; font-size: 50px; flex-shrink: 0; }
         .profile-photo img { width: 100%; height: 100%; object-fit: contain; }
         .profile-info { display: flex; flex-direction: column; gap: 14px; }
         .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -654,6 +656,12 @@
                             <div class="card-photo">
                                 ${c.photoUrl ? `<img src="${c.photoUrl}" alt="${c.name}">` : c.name.charAt(0).toUpperCase()}
                                 <div class="experience-badge">${typeof c.experience === 'number' ? c.experience : 0}y</div>
+                                <div class="status-badge" style="background: ${c.status === 'descontinuado' ? 'rgba(184, 82, 61, 0.95)' : 'rgba(107, 160, 68, 0.95)'};">
+                                    ${c.status === 'descontinuado' ? '✕ Descont.' : '✓ Activo'}
+                                </div>
+                                <div class="round-badge">
+                                    ${c.round === 'final' ? 'FINAL' : c.round === 'round2' ? 'RONDA 2' : 'RONDA 1'}
+                                </div>
                             </div>
                             <div class="card-content">
                                 <div class="card-name">${c.name}</div>
