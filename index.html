@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -138,6 +139,29 @@
         
         .form-section { background: white; padding: 40px; margin-bottom: 40px; border: 1px solid #f0ebe5; }
         .form-section h3 { font-size: 18px; color: #2d2d2d; margin-bottom: 28px; letter-spacing: 1px; font-weight: 600; }
+
+        /* Login */
+        #loginGate { display: none; max-width: 420px; margin: 0 auto; background: white; padding: 44px 36px; text-align: center; border: 1px solid #f0ebe5; box-shadow: 0 4px 20px rgba(156, 82, 61, 0.08); }
+        #loginGate p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 26px; }
+        #loginError { color: #b8523d; font-size: 13px; margin-top: 18px; }
+        #userBar { display: none; text-align: right; font-size: 12px; color: #a89080; margin-bottom: 20px; }
+        #userBar a { color: #9c523d; margin-left: 10px; cursor: pointer; text-decoration: underline; }
+
+        /* Closed vacancies */
+        .closed-section { margin-top: 60px; }
+        .closed-section h3 { font-size: 18px; color: #2d2d2d; font-weight: 600; letter-spacing: 1px; margin-bottom: 20px; }
+        .closed-row { background: #fbfaf8; border: 1px solid #ece6df; padding: 18px 22px; display: flex; gap: 16px; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+        .closed-name { font-size: 16px; color: #555; }
+        .closed-meta { font-size: 12px; color: #888; margin-top: 4px; line-height: 1.6; }
+        .closed-meta .hired { color: #4f7a30; font-weight: 600; }
+        .closed-meta .warn { color: #b8523d; font-weight: 600; }
+        .closed-actions { display: flex; gap: 8px; }
+        .notice { padding: 14px 18px; margin-bottom: 28px; font-size: 13px; line-height: 1.6; border-left: 3px solid #9c523d; background: #f7f5f2; color: #444; }
+        .notice.warn { border-left-color: #b8523d; background: #fff4f0; }
+        .notice .btn { margin-top: 10px; }
+        .vacancy-close-btn { background: white !important; color: #282828 !important; border: 1px solid #c9bfb5 !important; width: 100%; margin-bottom: 10px; }
+        .form-group textarea { padding: 11px 13px; border: 1px solid #e8dfd7; font-family: 'Lora', serif; font-size: 13px; background: #fdfbf8; min-height: 80px; resize: vertical; }
+        .check-row { display: flex; gap: 10px; align-items: center; font-size: 13px; color: #444; margin-top: 6px; }
     </style>
 </head>
 <body>
@@ -151,6 +175,14 @@
             <p id="pageSubtitle">RECRUITMENT DASHBOARD</p>
         </div>
         
+        <div id="userBar"><span id="userEmail"></span><a onclick="signOut()">Salir</a></div>
+
+        <div id="loginGate">
+            <p>Inicia sesión con tu cuenta de Google de Casa Las Tortugas para ver las vacantes y candidatos.</p>
+            <button class="btn btn-primary" onclick="signIn()">Iniciar sesión con Google</button>
+            <div id="loginError"></div>
+        </div>
+
         <div id="backLinkContainer" class="back-link" style="display: none;">
             <a href="#" onclick="window.history.pushState({}, '', '/'); router(); return false;">← Volver a vacantes</a>
         </div>
@@ -163,7 +195,7 @@
         </div>
         
         <div id="mainContent">
-            <div class="loading">Cargando...</div>
+            <div class="loading">Cargando…</div>
         </div>
     </div>
 
@@ -363,6 +395,17 @@
                         <select id="editStatus">
                             <option value="activo">En proceso</option>
                             <option value="descontinuado">Descontinuado</option>
+                            <option value="contratado">Contratado</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Ronda</label>
+                        <select id="editRound">
+                            <option value="round1">Ronda 1</option>
+                            <option value="round2">Ronda 2</option>
+                            <option value="final">Final</option>
                         </select>
                     </div>
                 </div>
@@ -410,14 +453,59 @@
         </div>
     </div>
 
+    <!-- Close Vacancy Modal -->
+    <div id="closeVacancyModal" class="modal">
+        <div class="modal-content" style="max-width: 620px;">
+            <button class="close-btn" onclick="closeCloseVacancyModal()">✕</button>
+            <div class="modal-header">
+                <h2>Cerrar vacante</h2>
+                <p id="closeVacancyName"></p>
+            </div>
+            <div class="modal-body">
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Motivo</label>
+                        <select id="closeReason" onchange="toggleHiredField()">
+                            <option value="contratacion">Contratación</option>
+                            <option value="cancelada">Cancelada sin contratación</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row full" id="hiredFieldRow">
+                    <div class="form-group">
+                        <label>Candidato contratado</label>
+                        <select id="closeHiredCandidate"></select>
+                    </div>
+                </div>
+                <div class="form-row full">
+                    <div class="form-group">
+                        <label>Nota de cierre (opcional)</label>
+                        <textarea id="closeNote" placeholder="Fecha de ingreso, condiciones acordadas, etc."></textarea>
+                    </div>
+                </div>
+                <label class="check-row"><input type="checkbox" id="closeDiscontinueOthers" checked> Marcar a los demás candidatos como Descontinuado</label>
+                <div class="notice warn" style="margin-top: 22px; margin-bottom: 0;" id="closeRetentionNotice"></div>
+            </div>
+            <div style="display: flex; gap: 15px; padding: 25px 40px; border-top: 1px solid #f0ebe5;">
+                <button class="btn btn-secondary" onclick="closeCloseVacancyModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmCloseVacancy()">Cerrar vacante</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <script>
-        let db, storage;
+        let db, storage, auth;
         let vacancies = [];
+
+        // Retención de datos de candidatos no contratados después del cierre
+        const RETENTION_MONTHS = 3;
+        const WARNING_DAYS = 7;
         
         const competencies = ['Operaciones Boutique', 'Inglés Fluido', 'Gestión Limpieza', 'PMS/Tecnología', 'Liderazgo', 'Estándares Servicio', 'Resolución Problemas', 'Control Presupuesto'];
         
@@ -454,13 +542,13 @@
                 });
             } catch (error) {
                 console.error('Error loading vacancies:', error);
+                throw error;
             }
         }
 
         function openCreateVacancyModal() {
             document.getElementById('createVacancyModal').classList.add('active');
             document.getElementById('vacancyName').value = '';
-            document.getElementById('vacancySlug').value = '';
         }
 
         function closeCreateVacancyModal() {
@@ -485,6 +573,7 @@
                 await db.collection('vacancies').add({
                     name: name,
                     slug: slug,
+                    status: 'abierta',
                     createdAt: new Date()
                 });
 
@@ -517,15 +606,271 @@
             }
             db = firebase.firestore();
             storage = firebase.storage();
-            loadLogo();
-            loadVacancies().then(() => {
+            auth = firebase.auth();
+
+            auth.onAuthStateChanged(async (user) => {
+                if (!user) {
+                    showLogin('');
+                    return;
+                }
+                try {
+                    await loadVacancies();
+                } catch (error) {
+                    if (error.code === 'permission-denied') {
+                        showLogin(`La cuenta ${user.email} no tiene acceso. Pide acceso al administrador o inicia sesión con otra cuenta.`);
+                        await auth.signOut();
+                    } else {
+                        showLogin('No se pudo cargar la información: ' + error.message);
+                    }
+                    return;
+                }
+                document.getElementById('loginGate').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('userBar').style.display = 'block';
+                document.getElementById('userEmail').textContent = user.email;
+                loadLogo();
+                await runRetentionCleanup();
                 router();
             });
         }
 
+        function showLogin(message) {
+            document.getElementById('loginGate').style.display = 'block';
+            document.getElementById('loginError').textContent = message || '';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('userBar').style.display = 'none';
+            document.getElementById('backLinkContainer').style.display = 'none';
+            document.getElementById('navTabsContainer').style.display = 'none';
+        }
+
+        async function signIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
+                    await auth.signInWithRedirect(provider);
+                } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                    document.getElementById('loginError').textContent = 'Error al iniciar sesión: ' + error.message;
+                }
+            }
+        }
+
+        function signOut() {
+            auth.signOut();
+        }
+
+        // ---------- Fechas ----------
+        function toDate(value) {
+            if (!value) return null;
+            if (value.toDate) return value.toDate();
+            return new Date(value);
+        }
+
+        function formatDate(value) {
+            const d = toDate(value);
+            if (!d || isNaN(d)) return '—';
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            return `${dd}-${mm}-${d.getFullYear()}`;
+        }
+
+        function addMonths(date, months) {
+            const d = new Date(date);
+            const day = d.getDate();
+            d.setMonth(d.getMonth() + months);
+            if (d.getDate() < day) d.setDate(0);
+            return d;
+        }
+
+        function daysUntil(value) {
+            const d = toDate(value);
+            if (!d) return null;
+            return Math.ceil((d - new Date()) / 86400000);
+        }
+
+        function isClosed(vacancy) {
+            return vacancy && vacancy.status === 'cerrada';
+        }
+
+        function escapeHtml(text) {
+            return String(text ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+        }
+
+        // ---------- Borrado de archivos ----------
+        async function deleteStorageFile(url) {
+            if (!url) return;
+            try {
+                await storage.refFromURL(url).delete();
+            } catch (error) {
+                if (error.code !== 'storage/object-not-found') {
+                    console.error('No se pudo borrar archivo:', url, error);
+                    throw error;
+                }
+            }
+        }
+
+        async function deleteCandidateWithFiles(candidate) {
+            await deleteStorageFile(candidate.photoUrl);
+            await deleteStorageFile(candidate.cvUrl);
+            await db.collection('candidates').doc(candidate.id).delete();
+        }
+
+        // ---------- Limpieza automática (se ejecuta al abrir el dashboard) ----------
+        async function runRetentionCleanup() {
+            const now = new Date();
+            let deleted = 0;
+            let failed = 0;
+            for (const vacancy of vacancies) {
+                if (!isClosed(vacancy) || vacancy.cleanedAt) continue;
+                const deleteAfter = toDate(vacancy.deleteAfter);
+                if (!deleteAfter || deleteAfter > now) continue;
+
+                const snapshot = await db.collection('candidates').where('vacante', '==', vacancy.slug).get();
+                let vacancyFailed = 0;
+                for (const doc of snapshot.docs) {
+                    const candidate = { id: doc.id, ...doc.data() };
+                    if (candidate.id === vacancy.hiredCandidateId || candidate.status === 'contratado') continue;
+                    try {
+                        await deleteCandidateWithFiles(candidate);
+                        deleted++;
+                    } catch (error) {
+                        vacancyFailed++;
+                        failed++;
+                    }
+                }
+                if (vacancyFailed === 0) {
+                    await db.collection('vacancies').doc(vacancy.id).update({ cleanedAt: new Date() });
+                    vacancy.cleanedAt = new Date();
+                }
+            }
+            if (deleted > 0 || failed > 0) {
+                window.cleanupMessage = `Limpieza automática: se eliminaron ${deleted} candidato(s) no contratados con más de ${RETENTION_MONTHS} meses desde el cierre de su vacante.` +
+                    (failed > 0 ? ` ${failed} no se pudieron eliminar; se reintentará la próxima vez.` : '');
+            }
+        }
+
+        // ---------- Cerrar / reabrir vacante ----------
+        async function openCloseVacancyModal(vacancyId) {
+            const vacancy = vacancies.find(v => v.id === vacancyId);
+            if (!vacancy) return;
+            window.closingVacancyId = vacancyId;
+
+            const snapshot = await db.collection('candidates').where('vacante', '==', vacancy.slug).get();
+            const roundOrder = { final: 0, round2: 1, round1: 2 };
+            const candidates = snapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter(c => c.status !== 'descontinuado')
+                .sort((a, b) => (roundOrder[a.round] ?? 3) - (roundOrder[b.round] ?? 3));
+            window.closingCandidateCount = snapshot.size;
+
+            const roundLabel = r => r === 'final' ? 'Final' : r === 'round2' ? 'Ronda 2' : 'Ronda 1';
+            const select = document.getElementById('closeHiredCandidate');
+            select.innerHTML = candidates.length === 0
+                ? '<option value="">No hay candidatos en proceso</option>'
+                : candidates.map(c => `<option value="${c.id}">${escapeHtml(c.name)} (${roundLabel(c.round)})</option>`).join('');
+
+            document.getElementById('closeVacancyName').textContent = vacancy.name;
+            document.getElementById('closeReason').value = 'contratacion';
+            document.getElementById('closeNote').value = '';
+            document.getElementById('closeDiscontinueOthers').checked = true;
+            document.getElementById('closeRetentionNotice').innerHTML =
+                `Los datos, CV y fotos de los candidatos no contratados se eliminarán automáticamente el <strong>${formatDate(addMonths(new Date(), RETENTION_MONTHS))}</strong> (${RETENTION_MONTHS} meses después del cierre).`;
+            toggleHiredField();
+            document.getElementById('closeVacancyModal').classList.add('active');
+        }
+
+        function closeCloseVacancyModal() {
+            document.getElementById('closeVacancyModal').classList.remove('active');
+        }
+
+        function toggleHiredField() {
+            const hiring = document.getElementById('closeReason').value === 'contratacion';
+            document.getElementById('hiredFieldRow').style.display = hiring ? 'grid' : 'none';
+        }
+
+        async function confirmCloseVacancy() {
+            const vacancy = vacancies.find(v => v.id === window.closingVacancyId);
+            if (!vacancy) return;
+            const reason = document.getElementById('closeReason').value;
+            const hiredId = reason === 'contratacion' ? document.getElementById('closeHiredCandidate').value : '';
+
+            if (reason === 'contratacion' && !hiredId) {
+                alert('Selecciona el candidato contratado, o cambia el motivo a "Cancelada sin contratación".');
+                return;
+            }
+
+            const closedAt = new Date();
+            const deleteAfter = addMonths(closedAt, RETENTION_MONTHS);
+
+            try {
+                const batch = db.batch();
+                batch.update(db.collection('vacancies').doc(vacancy.id), {
+                    status: 'cerrada',
+                    closedAt,
+                    deleteAfter,
+                    closeReason: reason,
+                    closeNote: document.getElementById('closeNote').value.trim(),
+                    hiredCandidateId: hiredId || null,
+                    closedBy: auth.currentUser ? auth.currentUser.email : '',
+                    cleanedAt: null
+                });
+
+                const snapshot = await db.collection('candidates').where('vacante', '==', vacancy.slug).get();
+                const discontinueOthers = document.getElementById('closeDiscontinueOthers').checked;
+                snapshot.forEach(doc => {
+                    if (doc.id === hiredId) {
+                        batch.update(doc.ref, { status: 'contratado' });
+                    } else if (discontinueOthers && doc.data().status !== 'descontinuado') {
+                        batch.update(doc.ref, { status: 'descontinuado' });
+                    }
+                });
+                await batch.commit();
+
+                closeCloseVacancyModal();
+                await loadVacancies();
+                router();
+            } catch (error) {
+                alert('Error al cerrar la vacante: ' + error.message);
+            }
+        }
+
+        async function reopenVacancy(vacancyId) {
+            const vacancy = vacancies.find(v => v.id === vacancyId);
+            if (!vacancy) return;
+            const warning = vacancy.cleanedAt
+                ? '\n\nLos candidatos no contratados ya fueron eliminados y no se pueden recuperar.'
+                : '\n\nLa eliminación programada de datos se cancelará. Los candidatos descontinuados siguen como Descontinuado.';
+            if (!confirm(`¿Reabrir la vacante "${vacancy.name}"?${warning}`)) return;
+
+            try {
+                const batch = db.batch();
+                batch.update(db.collection('vacancies').doc(vacancy.id), {
+                    status: 'abierta',
+                    closedAt: null,
+                    deleteAfter: null,
+                    closeReason: null,
+                    hiredCandidateId: null,
+                    cleanedAt: null,
+                    reopenedAt: new Date()
+                });
+                if (vacancy.hiredCandidateId) {
+                    const hiredRef = db.collection('candidates').doc(vacancy.hiredCandidateId);
+                    const hiredDoc = await hiredRef.get();
+                    if (hiredDoc.exists) batch.update(hiredRef, { status: 'activo' });
+                }
+                await batch.commit();
+                await loadVacancies();
+                router();
+            } catch (error) {
+                alert('Error al reabrir la vacante: ' + error.message);
+            }
+        }
+
         function router() {
             const path = window.location.pathname;
-            const match = path.match(/\/dashboard\/([a-z-]+)/);
+            const match = path.match(/\/dashboard\/([a-z0-9-]+)/);
             
             document.getElementById('backLinkContainer').style.display = 'none';
             document.getElementById('navTabsContainer').style.display = 'none';
@@ -543,30 +888,49 @@
 
         async function loadMasterDashboard() {
             const mainContent = document.getElementById('mainContent');
-            let html = '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;"><h3 style="font-size: 18px; color: #2d2d2d; font-weight: 600; letter-spacing: 1px;">VACANTES ABIERTAS</h3><button class="btn btn-primary" onclick="openCreateVacancyModal()" style="padding: 10px 24px; font-size: 11px;">+ Agregar vacante</button></div>';
+            const openVacancies = vacancies.filter(v => !isClosed(v));
+            const closedVacancies = vacancies.filter(v => isClosed(v))
+                .sort((a, b) => (toDate(b.closedAt) || 0) - (toDate(a.closedAt) || 0));
+
+            let html = '';
+            if (window.cleanupMessage) {
+                html += `<div class="notice">${window.cleanupMessage}</div>`;
+                window.cleanupMessage = '';
+            }
+
+            // Aviso de eliminaciones próximas
+            const upcoming = closedVacancies.filter(v => !v.cleanedAt && daysUntil(v.deleteAfter) !== null && daysUntil(v.deleteAfter) <= WARNING_DAYS);
+            if (upcoming.length > 0) {
+                html += `<div class="notice warn">${upcoming.map(v => {
+                    const days = Math.max(0, daysUntil(v.deleteAfter));
+                    return `Los candidatos no contratados de <strong>${escapeHtml(v.name)}</strong> se eliminarán ${days === 0 ? 'hoy' : `en ${days} día(s)`} (${formatDate(v.deleteAfter)}).`;
+                }).join('<br>')}<br>Si necesitas conservarlos, reabre la vacante antes de esa fecha.</div>`;
+            }
+
+            html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;"><h3 style="font-size: 18px; color: #2d2d2d; font-weight: 600; letter-spacing: 1px;">VACANTES ABIERTAS</h3><button class="btn btn-primary" onclick="openCreateVacancyModal()" style="padding: 10px 24px; font-size: 11px;">+ Agregar vacante</button></div>';
             html += '<div class="vacancies-grid">';
 
-            if (vacancies.length === 0) {
-                html += '<div class="empty">No hay vacantes creadas. Crea una nueva para comenzar.</div>';
+            if (openVacancies.length === 0) {
+                html += '<div class="empty">No hay vacantes abiertas. Crea una nueva para comenzar.</div>';
             } else {
-                for (const vacancy of vacancies) {
+                for (const vacancy of openVacancies) {
                     try {
                         const snapshot = await db.collection('candidates')
                             .where('vacante', '==', vacancy.slug)
                             .get();
-                        
+
                         let round1 = 0, round2 = 0, finalRound = 0, activos = 0, descontinuados = 0;
-                        
+
                         snapshot.forEach(doc => {
                             const data = doc.data();
-                            if (data.round === 'round1') round1++;
-                            else if (data.round === 'round2') round2++;
+                            if (data.round === 'round2') round2++;
                             else if (data.round === 'final') finalRound++;
-                            
-                            if (data.status === 'activo' || !data.status) activos++;
-                            else if (data.status === 'descontinuado') descontinuados++;
+                            else round1++;
+
+                            if (data.status === 'descontinuado') descontinuados++;
+                            else activos++;
                         });
-                        
+
                         const count = snapshot.size;
 
                         html += `
@@ -577,10 +941,10 @@
                                         <path d="M25 18C20 18 16 21 16 25v12h18V25c0-4-4-7-9-7Z" fill="#9c523d"/>
                                     </svg>
                                 </div>
-                                <div class="vacancy-title">${vacancy.name}</div>
+                                <div class="vacancy-title">${escapeHtml(vacancy.name)}</div>
                                 <div class="vacancy-count">${count}</div>
                                 <div class="vacancy-label">candidatos totales</div>
-                                
+
                                 <div style="background: #f7f5f2; padding: 12px; border-radius: 1px; margin-bottom: 14px; font-size: 11px; text-align: left;">
                                     <div style="color: #9c523d; font-weight: 600; margin-bottom: 6px;">Rondas:</div>
                                     <div style="color: #555; line-height: 1.6;">
@@ -589,7 +953,7 @@
                                         <strong>Final:</strong> ${finalRound}
                                     </div>
                                 </div>
-                                
+
                                 <div style="background: #f7f5f2; padding: 12px; border-radius: 1px; margin-bottom: 14px; font-size: 11px; text-align: left;">
                                     <div style="color: #9c523d; font-weight: 600; margin-bottom: 6px;">Estado:</div>
                                     <div style="color: #555; line-height: 1.6;">
@@ -597,8 +961,9 @@
                                         <strong style="color: #b8523d;">✕ Descontinuado:</strong> ${descontinuados}
                                     </div>
                                 </div>
-                                
-                                <button class="vacancy-btn" onclick="window.location.href='/dashboard/${vacancy.slug}'" style="margin-bottom: 10px;">Abrir dashboard</button>
+
+                                <button class="vacancy-btn" onclick="window.location.href='/dashboard/${vacancy.slug}'" style="margin-bottom: 10px; width: 100%;">Abrir dashboard</button>
+                                <button class="vacancy-btn vacancy-close-btn" onclick="openCloseVacancyModal('${vacancy.id}')">Cerrar vacante</button>
                                 <button class="vacancy-btn" onclick="deleteVacancy('${vacancy.id}')" style="background: white; color: #9c523d; border: 2px solid #9c523d; width: 100%; font-weight: 700;">Eliminar vacante</button>
                             </div>
                         `;
@@ -607,8 +972,44 @@
                     }
                 }
             }
-
             html += '</div>';
+
+            if (closedVacancies.length > 0) {
+                html += `<div class="closed-section"><h3>VACANTES CERRADAS (${closedVacancies.length})</h3>`;
+                for (const vacancy of closedVacancies) {
+                    let hiredLine = '<span>Cancelada sin contratación</span>';
+                    if (vacancy.hiredCandidateId) {
+                        let hiredName = 'Candidato eliminado';
+                        try {
+                            const hiredDoc = await db.collection('candidates').doc(vacancy.hiredCandidateId).get();
+                            if (hiredDoc.exists) hiredName = hiredDoc.data().name;
+                        } catch (error) { console.error(error); }
+                        hiredLine = `<span class="hired">Contratado: ${escapeHtml(hiredName)}</span>`;
+                    }
+                    let retentionLine;
+                    if (vacancy.cleanedAt) {
+                        retentionLine = `Datos de no contratados eliminados el ${formatDate(vacancy.cleanedAt)}`;
+                    } else {
+                        const days = daysUntil(vacancy.deleteAfter);
+                        const text = `No contratados se eliminan el ${formatDate(vacancy.deleteAfter)}`;
+                        retentionLine = days !== null && days <= WARNING_DAYS ? `<span class="warn">${text}</span>` : text;
+                    }
+                    html += `
+                        <div class="closed-row">
+                            <div>
+                                <div class="closed-name">${escapeHtml(vacancy.name)}</div>
+                                <div class="closed-meta">${hiredLine} &nbsp;|&nbsp; Cerrada el ${formatDate(vacancy.closedAt)}<br>${retentionLine}</div>
+                            </div>
+                            <div class="closed-actions">
+                                <button class="btn-small" onclick="window.location.href='/dashboard/${vacancy.slug}'">Ver</button>
+                                <button class="btn-small" onclick="reopenVacancy('${vacancy.id}')">Reabrir</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            }
+
             mainContent.innerHTML = html;
         }
 
@@ -635,8 +1036,38 @@
                 window.currentCandidates.push({ id: doc.id, ...doc.data() });
             });
 
+            window.currentVacancyDoc = vacancy;
             renderCandidateCards();
             renderCandidateTable();
+            renderVacancyBanner(vacancy);
+        }
+
+        function renderVacancyBanner(vacancy) {
+            const banner = document.createElement('div');
+            if (isClosed(vacancy)) {
+                const hired = window.currentCandidates.find(c => c.id === vacancy.hiredCandidateId);
+                const hiredText = vacancy.closeReason === 'cancelada'
+                    ? 'Cancelada sin contratación.'
+                    : `Contratado: <strong>${escapeHtml(hired ? hired.name : 'candidato eliminado')}</strong>.`;
+                const retention = vacancy.cleanedAt
+                    ? `Los datos de los candidatos no contratados se eliminaron el ${formatDate(vacancy.cleanedAt)}.`
+                    : `Los datos de los candidatos no contratados se eliminarán el <strong>${formatDate(vacancy.deleteAfter)}</strong>.`;
+                banner.className = 'notice warn';
+                banner.innerHTML = `Vacante cerrada el ${formatDate(vacancy.closedAt)}. ${hiredText} ${retention}
+                    ${vacancy.closeNote ? `<br>Nota: ${escapeHtml(vacancy.closeNote)}` : ''}
+                    <br><button class="btn btn-secondary" onclick="reopenVacancy('${vacancy.id}')">Reabrir vacante</button>`;
+            } else {
+                banner.style.cssText = 'text-align: right; margin-bottom: 24px;';
+                banner.innerHTML = `<button class="btn btn-secondary" onclick="openCloseVacancyModal('${vacancy.id}')">Cerrar vacante</button>`;
+            }
+            const mainContent = document.getElementById('mainContent');
+            mainContent.insertBefore(banner, mainContent.firstChild);
+        }
+
+        function statusInfo(status) {
+            if (status === 'contratado') return { label: '★ Contratado', short: '★ Contratado', color: 'rgba(79, 122, 48, 0.95)', text: '#4f7a30', bg: '#eef6e8' };
+            if (status === 'descontinuado') return { label: '✕ Descontinuado', short: '✕ Descont.', color: 'rgba(184, 82, 61, 0.95)', text: '#b8523d', bg: '#fff4f0' };
+            return { label: '✓ En proceso', short: '✓ Activo', color: 'rgba(107, 160, 68, 0.95)', text: '#6ba044', bg: '#f0faf8' };
         }
 
         function renderCandidateCards() {
@@ -649,15 +1080,16 @@
                 evaluateTab.innerHTML = '<div class="empty">No hay candidatos para esta vacante</div>';
             } else {
                 let html = '<div class="candidates-grid">';
-                window.currentCandidates.forEach(c => {
+                const ordered = [...window.currentCandidates].sort((a, b) => (b.status === 'contratado') - (a.status === 'contratado'));
+                ordered.forEach(c => {
                     const avgRating = calculateAverage(c.ratings);
                     html += `
                         <div class="candidate-card">
                             <div class="card-photo">
                                 ${c.photoUrl ? `<img src="${c.photoUrl}" alt="${c.name}">` : c.name.charAt(0).toUpperCase()}
                                 <div class="experience-badge">${typeof c.experience === 'number' ? c.experience : 0}y</div>
-                                <div class="status-badge" style="background: ${c.status === 'descontinuado' ? 'rgba(184, 82, 61, 0.95)' : 'rgba(107, 160, 68, 0.95)'};">
-                                    ${c.status === 'descontinuado' ? '✕ Descont.' : '✓ Activo'}
+                                <div class="status-badge" style="background: ${statusInfo(c.status).color}; color: white;">
+                                    ${statusInfo(c.status).short}
                                 </div>
                                 <div class="round-badge">
                                     ${c.round === 'final' ? 'FINAL' : c.round === 'round2' ? 'RONDA 2' : 'RONDA 1'}
@@ -1013,10 +1445,10 @@
                     </div>
                 </div>
 
-                <div style="background: ${candidate.status === 'descontinuado' ? '#fff4f0' : '#f0faf8'}; padding: 14px; margin-bottom: 16px; border-left: 3px solid ${candidate.status === 'descontinuado' ? '#b8523d' : '#6ba044'};">
+                <div style="background: ${statusInfo(candidate.status).bg}; padding: 14px; margin-bottom: 16px; border-left: 3px solid ${statusInfo(candidate.status).text};">
                     <div class="info-label">Estado del candidato</div>
-                    <div class="info-value" style="font-weight: 600; color: ${candidate.status === 'descontinuado' ? '#b8523d' : '#6ba044'};">
-                        ${candidate.status === 'descontinuado' ? '✕ Descontinuado' : '✓ En proceso'}
+                    <div class="info-value" style="font-weight: 600; color: ${statusInfo(candidate.status).text};">
+                        ${statusInfo(candidate.status).label}
                     </div>
                 </div>
 
@@ -1146,6 +1578,9 @@
             document.getElementById('editInterview3Comments').value = candidate.interview3?.comments || '';
             document.getElementById('editInterview3Resume').value = candidate.interview3?.resume || '';
             document.getElementById('editStatus').value = candidate.status || 'activo';
+            document.getElementById('editRound').value = candidate.round || 'round1';
+            document.getElementById('editPhoto').value = '';
+            document.getElementById('editCV').value = '';
 
             window.currentEditDocId = docId;
             closeModal();
@@ -1165,6 +1600,7 @@
                     const photoRef = storage.ref().child(`candidates/photos/${Date.now()}_${photoFile.name}`);
                     await photoRef.put(photoFile);
                     photoUrl = await photoRef.getDownloadURL();
+                    if (candidate.photoUrl) await deleteStorageFile(candidate.photoUrl).catch(() => {});
                 } else {
                     photoUrl = candidate.photoUrl || '';
                 }
@@ -1173,6 +1609,7 @@
                     const cvRef = storage.ref().child(`candidates/cvs/${Date.now()}_${cvFile.name}`);
                     await cvRef.put(cvFile);
                     cvUrl = await cvRef.getDownloadURL();
+                    if (candidate.cvUrl) await deleteStorageFile(candidate.cvUrl).catch(() => {});
                 } else {
                     cvUrl = candidate.cvUrl || '';
                 }
@@ -1211,6 +1648,7 @@
                         resume: document.getElementById('editInterview3Resume').value.trim()
                     },
                     status: document.getElementById('editStatus').value,
+                    round: document.getElementById('editRound').value,
                     photoUrl: photoUrl,
                     cvUrl: cvUrl
                 });
@@ -1322,9 +1760,10 @@
         }
 
         async function deleteCandidate(docId) {
-            if (!confirm('¿Eliminar este candidato?')) return;
+            if (!confirm('¿Eliminar este candidato? También se borrarán su CV y foto.')) return;
+            const candidate = window.currentCandidates.find(c => c.id === docId);
             try {
-                await db.collection('candidates').doc(docId).delete();
+                await deleteCandidateWithFiles(candidate || { id: docId });
                 loadVacancyDashboard(window.currentVacancy);
             } catch (error) {
                 alert('Error: ' + error.message);
