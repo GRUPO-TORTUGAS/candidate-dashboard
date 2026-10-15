@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -159,6 +160,16 @@
         .notice { padding: 14px 18px; margin-bottom: 28px; font-size: 13px; line-height: 1.6; border-left: 3px solid #9c523d; background: #f7f5f2; color: #444; }
         .notice.warn { border-left-color: #b8523d; background: #fff4f0; }
         .notice .btn { margin-top: 10px; }
+        .vacancy-card.closed { position: relative; overflow: hidden; background: #fbfaf8; }
+        .vacancy-card.closed:hover { transform: none; }
+        .closed-dim { filter: grayscale(1); opacity: 0.45; }
+        .closed-stage { position: relative; }
+        .closed-ribbon { position: absolute; left: -30%; width: 160%; top: 50%; transform: translateY(-50%) rotate(-22deg); background: #9c523d; color: white; text-align: center; padding: 12px 0 11px; box-shadow: 0 6px 18px rgba(0,0,0,0.18); pointer-events: none; z-index: 2; }
+        .closed-ribbon .ribbon-status { font-family: 'Bitter', serif; font-size: 13px; font-weight: 700; letter-spacing: 4px; }
+        .closed-ribbon .ribbon-name { font-size: 17px; margin-top: 3px; letter-spacing: 0.3px; }
+        .closed-ribbon.cancelled { background: #555; }
+        .closed-info { position: relative; z-index: 3; font-size: 12px; color: #777; line-height: 1.6; margin: 18px 0 16px; }
+        .closed-info .warn { color: #b8523d; font-weight: 600; }
         .vacancy-close-btn { background: white !important; color: #282828 !important; border: 1px solid #c9bfb5 !important; width: 100%; margin-bottom: 10px; }
         .form-group textarea { padding: 11px 13px; border: 1px solid #e8dfd7; font-family: 'Lora', serif; font-size: 13px; background: #fdfbf8; min-height: 80px; resize: vertical; }
         .check-row { display: flex; gap: 10px; align-items: center; font-size: 13px; color: #444; margin-top: 6px; }
@@ -975,17 +986,19 @@
             html += '</div>';
 
             if (closedVacancies.length > 0) {
-                html += `<div class="closed-section"><h3>VACANTES CERRADAS (${closedVacancies.length})</h3>`;
+                html += `<div class="closed-section"><h3>VACANTES CERRADAS (${closedVacancies.length})</h3><div class="vacancies-grid">`;
                 for (const vacancy of closedVacancies) {
-                    let hiredLine = '<span>Cancelada sin contratación</span>';
-                    if (vacancy.hiredCandidateId) {
-                        let hiredName = 'Candidato eliminado';
-                        try {
-                            const hiredDoc = await db.collection('candidates').doc(vacancy.hiredCandidateId).get();
-                            if (hiredDoc.exists) hiredName = hiredDoc.data().name;
-                        } catch (error) { console.error(error); }
-                        hiredLine = `<span class="hired">Contratado: ${escapeHtml(hiredName)}</span>`;
-                    }
+                    let ribbonName = 'Sin contratación';
+                    let count = 0;
+                    try {
+                        const snapshot = await db.collection('candidates').where('vacante', '==', vacancy.slug).get();
+                        count = snapshot.size;
+                        if (vacancy.hiredCandidateId) {
+                            const hiredDoc = snapshot.docs.find(d => d.id === vacancy.hiredCandidateId);
+                            ribbonName = hiredDoc ? hiredDoc.data().name : 'Candidato eliminado';
+                        }
+                    } catch (error) { console.error(error); }
+
                     let retentionLine;
                     if (vacancy.cleanedAt) {
                         retentionLine = `Datos de no contratados eliminados el ${formatDate(vacancy.cleanedAt)}`;
@@ -994,20 +1007,33 @@
                         const text = `No contratados se eliminan el ${formatDate(vacancy.deleteAfter)}`;
                         retentionLine = days !== null && days <= WARNING_DAYS ? `<span class="warn">${text}</span>` : text;
                     }
+
                     html += `
-                        <div class="closed-row">
-                            <div>
-                                <div class="closed-name">${escapeHtml(vacancy.name)}</div>
-                                <div class="closed-meta">${hiredLine} &nbsp;|&nbsp; Cerrada el ${formatDate(vacancy.closedAt)}<br>${retentionLine}</div>
+                        <div class="vacancy-card closed">
+                            <div class="vacancy-title" style="position: relative; z-index: 3;">${escapeHtml(vacancy.name)}</div>
+                            <div class="closed-stage">
+                            <div class="closed-ribbon ${vacancy.hiredCandidateId ? '' : 'cancelled'}">
+                                <div class="ribbon-status">CERRADA</div>
+                                <div class="ribbon-name">${vacancy.hiredCandidateId ? 'Contratado: ' : ''}${escapeHtml(ribbonName)}</div>
                             </div>
-                            <div class="closed-actions">
-                                <button class="btn-small" onclick="window.location.href='/dashboard/${vacancy.slug}'">Ver</button>
-                                <button class="btn-small" onclick="reopenVacancy('${vacancy.id}')">Reabrir</button>
+                            <div class="closed-dim">
+                                <div style="text-align: center; margin-bottom: 20px;">
+                                    <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto;">
+                                        <circle cx="25" cy="12" r="5" fill="#9c523d"/>
+                                        <path d="M25 18C20 18 16 21 16 25v12h18V25c0-4-4-7-9-7Z" fill="#9c523d"/>
+                                    </svg>
+                                </div>
+                                <div class="vacancy-count">${count}</div>
+                                <div class="vacancy-label">candidatos totales</div>
                             </div>
+                            </div>
+                            <div class="closed-info">Cerrada el ${formatDate(vacancy.closedAt)}<br>${retentionLine}</div>
+                            <button class="vacancy-btn" onclick="window.location.href='/dashboard/${vacancy.slug}'" style="margin-bottom: 10px; width: 100%; position: relative; z-index: 3;">Ver dashboard</button>
+                            <button class="vacancy-btn vacancy-close-btn" onclick="reopenVacancy('${vacancy.id}')" style="position: relative; z-index: 3;">Reabrir vacante</button>
                         </div>
                     `;
                 }
-                html += '</div>';
+                html += '</div></div>';
             }
 
             mainContent.innerHTML = html;
