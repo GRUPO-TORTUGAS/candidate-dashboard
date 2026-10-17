@@ -68,6 +68,11 @@
         .card-actions { display: flex; gap: 8px; margin-top: 14px; }
         .card-btn { flex: 1; padding: 9px; background: #f7f5f2; border: 1px solid #e8dfd7; cursor: pointer; font-size: 10px; font-weight: 600; color: #9c523d; transition: all 0.2s; font-family: 'Bitter', serif; letter-spacing: 0.5px; text-transform: uppercase; }
         .card-btn:hover { background: #e8dfd7; border-color: #9c523d; }
+        a.card-btn { display: block; text-align: center; text-decoration: none; }
+        .card-btn.cv { background: #9c523d; border-color: #9c523d; color: white; }
+        .card-btn.cv:hover { background: #8a4530; }
+        .card-btn.disabled { color: #bbb; cursor: default; background: #faf9f7; border-color: #eee; }
+        .card-btn.disabled:hover { background: #faf9f7; border-color: #eee; }
 
         /* Modal */
         .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; animation: fadeIn 0.3s ease; }
@@ -160,6 +165,10 @@
         .notice { padding: 14px 18px; margin-bottom: 28px; font-size: 13px; line-height: 1.6; border-left: 3px solid #9c523d; background: #f7f5f2; color: #444; }
         .notice.warn { border-left-color: #b8523d; background: #fff4f0; }
         .notice .btn { margin-top: 10px; }
+        .card-notes { background: #f7f5f2; border-left: 3px solid #9c523d; padding: 10px 12px; margin: 12px 0 4px; font-size: 12px; color: #444; line-height: 1.5; }
+        .card-notes-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; color: #9c523d; text-transform: uppercase; margin-bottom: 4px; }
+        .card-notes-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
+        .card-notes.empty { border-left-color: #e0d8d0; color: #aaa; font-style: italic; }
         .vacancy-card.closed { position: relative; overflow: hidden; background: #fbfaf8; }
         .vacancy-card.closed:hover { transform: none; }
         .closed-dim { filter: grayscale(1); opacity: 0.45; }
@@ -318,7 +327,7 @@
                 <div class="form-row full">
                     <div class="form-group">
                         <label>Notas del reclutador</label>
-                        <input type="text" id="editRecruiterNotes">
+                        <textarea id="editRecruiterNotes" placeholder="Comentarios clave sobre el candidato"></textarea>
                     </div>
                 </div>
                 <div class="form-row full">
@@ -1126,6 +1135,9 @@
                                 <div class="card-detail"><strong>Email:</strong> ${c.email || 'N/A'}</div>
                                 <div class="card-detail"><strong>Teléfono:</strong> ${c.phone || 'N/A'}</div>
                                 <div class="card-detail"><strong>Software:</strong> ${c.pms || 'N/A'}</div>
+                                ${c.recruiterNotes
+                                    ? `<div class="card-notes" title="${escapeHtml(c.recruiterNotes)}"><div class="card-notes-label">Notas del reclutador</div><div class="card-notes-text">${escapeHtml(c.recruiterNotes)}</div></div>`
+                                    : `<div class="card-notes empty">Sin notas del reclutador</div>`}
                                 <div class="card-avg">
                                     <div class="card-avg-label">Promedio</div>
                                     <div class="card-avg-score">${avgRating}</div>
@@ -1133,6 +1145,9 @@
                                 <div class="card-actions">
                                     <button class="card-btn" data-id="${c.id}" onclick="showDetail(this.dataset.id)">Ver perfil</button>
                                     <button class="card-btn" data-id="${c.id}" data-name="${c.name}" onclick="openRating(this.dataset.id, this.dataset.name)">Evaluar</button>
+                                    ${c.cvUrl
+                                        ? `<a class="card-btn cv" href="${c.cvUrl}" target="_blank" rel="noopener">CV</a>`
+                                        : `<span class="card-btn disabled" title="No se ha subido un CV">Sin CV</span>`}
                                 </div>
                             </div>
                         </div>
@@ -1214,7 +1229,7 @@
                     <div class="form-row full">
                         <div class="form-group">
                             <label>Notas del reclutador</label>
-                            <input type="text" id="newRecruiterNotes" placeholder="Observaciones internas">
+                            <textarea id="newRecruiterNotes" placeholder="Comentarios clave sobre el candidato"></textarea>
                         </div>
                     </div>
                     <div class="form-row full">
@@ -1480,7 +1495,7 @@
 
                 <div style="background: #f7f5f2; padding: 14px; margin-bottom: 16px; border-left: 2px solid #9c523d;">
                     <div class="info-label">Notas del reclutador</div>
-                    <div class="info-value">${candidate.recruiterNotes || 'N/A'}</div>
+                    <div class="info-value" style="white-space: pre-line;">${candidate.recruiterNotes ? escapeHtml(candidate.recruiterNotes) : 'N/A'}</div>
                 </div>
 
                 <div style="background: #f7f5f2; padding: 14px; margin-bottom: 16px; border-left: 2px solid #9c523d;">
