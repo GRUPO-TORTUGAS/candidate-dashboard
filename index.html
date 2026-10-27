@@ -164,6 +164,12 @@
         .notice { padding: 14px 18px; margin-bottom: 28px; font-size: 13px; line-height: 1.6; border-left: 3px solid #9c523d; background: #f7f5f2; color: #444; }
         .notice.warn { border-left-color: #b8523d; background: #fff4f0; }
         .notice .btn { margin-top: 10px; }
+        .cv-photos { margin-top: 10px; font-size: 12px; color: #777; }
+        .cv-photos .cv-photo-grid { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .cv-photos .cv-photo-option { width: 92px; text-align: center; cursor: pointer; border: 2px solid #e8dfd7; background: white; padding: 4px; font-size: 10px; color: #9c523d; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cv-photos .cv-photo-option img { width: 100%; height: 100px; object-fit: cover; display: block; margin-bottom: 4px; }
+        .cv-photos .cv-photo-option.selected { border-color: #4f7a30; color: #4f7a30; }
+        .cv-photos .cv-photo-ok { color: #4f7a30; font-weight: 600; }
         .criteria-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
         .criteria-row { display: flex; gap: 8px; align-items: center; }
         .criteria-row .num { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #9c523d; color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
@@ -440,13 +446,14 @@
                 <div class="form-row full">
                     <div class="form-group">
                         <label>Foto de perfil</label>
-                        <input type="file" id="editPhoto" accept="image/*">
+                        <input type="file" id="editPhoto" accept="image/*" onchange="onManualPhotoSelected('edit')">
                     </div>
                 </div>
                 <div class="form-row full">
                     <div class="form-group">
                         <label>CV (PDF, DOC, DOCX)</label>
-                        <input type="file" id="editCV" accept=".pdf,.doc,.docx">
+                        <input type="file" id="editCV" accept=".pdf,.doc,.docx" onchange="onCvSelected('edit', this)">
+                        <div id="editCvPhotos" class="cv-photos"></div>
                     </div>
                 </div>
             </div>
@@ -560,6 +567,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
     <script>
         let db, storage, auth;
@@ -569,6 +577,244 @@
         const RETENTION_MONTHS = 3;
         const WARNING_DAYS = 7;
         
+        // ---------- Foto desde el CV (PDF) ----------
+        const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const pendingCvPhoto = { new: null, edit: null };
+        const cvPhotoResults = { new: [], edit: [] };
+        const cvScanId = { new: 0, edit: 0 };
+
+        function multiplyMatrix(m, t) {
+            return [
+                m[0] * t[0] + m[2] * t[1], m[1] * t[0] + m[3] * t[1],
+                m[0] * t[2] + m[2] * t[3], m[1] * t[2] + m[3] * t[3],
+                m[0] * t[4] + m[2] * t[5] + m[4], m[1] * t[4] + m[3] * t[5] + m[5]
+            ];
+        }
+
+        function imageObjectToCanvas(img) {
+            if (!img || !img.width || !img.height) return null;
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            if (img.bitmap) {
+                ctx.drawImage(img.bitmap, 0, 0);
+                return canvas;
+            }
+            if (!img.data) return null;
+            const out = ctx.createImageData(img.width, img.height);
+            const px = img.width * img.height;
+            if (img.kind === 3 && img.data.length >= px * 4) {
+                out.data.set(img.data.subarray(0, px * 4));
+            } else if (img.kind === 2 && img.data.length >= px * 3) {
+                for (let i = 0, j = 0; i < px; i++, j += 3) {
+                    out.data[i * 4] = img.data[j];
+                    out.data[i * 4 + 1] = img.data[j + 1];
+                    out.data[i * 4 + 2] = img.data[j + 2];
+                    out.data[i * 4 + 3] = 255;
+                }
+            } else {
+                return null; // imágenes en blanco y negro de 1 bit: no son fotos
+            }
+            ctx.putImageData(out, 0, 0);
+            return canvas;
+        }
+
+        // Descarta bloques de color plano (fondos, formas decorativas)
+        function looksLikePhoto(canvas) {
+            const size = 32;
+            const c = document.createElement('canvas');
+            c.width = size; c.height = size;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, size, size);
+            ctx.drawImage(canvas, 0, 0, size, size);
+            const d = ctx.getImageData(0, 0, size, size).data;
+            let sum = 0, sumSq = 0, n = 0;
+            const colors = new Set();
+            for (let i = 0; i < d.length; i += 4) {
+                const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+                sum += lum; sumSq += lum * lum; n++;
+                colors.add((d[i] >> 4) + '-' + (d[i + 1] >> 4) + '-' + (d[i + 2] >> 4));
+            }
+            const sd = Math.sqrt(Math.max(0, sumSq / n - (sum / n) ** 2));
+            return sd > 18 && colors.size > 40;
+        }
+
+        function canvasToJpeg(canvas, maxSize = 700) {
+            const scale = Math.min(1, maxSize / Math.max(canvas.width, canvas.height));
+            const out = document.createElement('canvas');
+            out.width = Math.round(canvas.width * scale);
+            out.height = Math.round(canvas.height * scale);
+            const ctx = out.getContext('2d');
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, out.width, out.height);
+            ctx.drawImage(canvas, 0, 0, out.width, out.height);
+            return new Promise(resolve => out.toBlob(resolve, 'image/jpeg', 0.88));
+        }
+
+        async function extractPhotosFromPdf(arrayBuffer) {
+            if (!window.pdfjsLib) throw new Error('No se pudo cargar el lector de PDF.');
+            pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, isEvalSupported: false }).promise;
+            const found = [];
+            try {
+                const pagesToScan = Math.min(pdf.numPages, 2);
+                for (let pageNum = 1; pageNum <= pagesToScan && found.length === 0; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const [x0, y0, x1, y1] = page.view;
+                    const pageArea = Math.abs((x1 - x0) * (y1 - y0));
+                    const ops = await page.getOperatorList();
+                    const OPS = pdfjsLib.OPS;
+                    let ctm = [1, 0, 0, 1, 0, 0];
+                    const stack = [];
+                    const seen = new Set();
+                    const placements = [];
+
+                    for (let i = 0; i < ops.fnArray.length; i++) {
+                        const fn = ops.fnArray[i];
+                        const args = ops.argsArray[i];
+                        if (fn === OPS.save) stack.push(ctm);
+                        else if (fn === OPS.restore) ctm = stack.pop() || ctm;
+                        else if (fn === OPS.transform) ctm = multiplyMatrix(ctm, args);
+                        else if (fn === OPS.paintFormXObjectBegin) { stack.push(ctm); if (args && args[0]) ctm = multiplyMatrix(ctm, args[0]); }
+                        else if (fn === OPS.paintFormXObjectEnd) ctm = stack.pop() || ctm;
+                        else if (fn === OPS.paintImageXObject || fn === OPS.paintInlineImageXObject) {
+                            const w = Math.hypot(ctm[0], ctm[1]);
+                            const h = Math.hypot(ctm[2], ctm[3]);
+                            placements.push({ fn, ref: args[0], w, h });
+                        }
+                    }
+
+                    for (const pl of placements) {
+                        if (pl.w < 40 || pl.h < 40) continue;                    // iconos
+                        if ((pl.w * pl.h) / pageArea > 0.5) continue;             // fondos / CV escaneado
+                        const aspect = pl.w / pl.h;
+                        if (aspect < 0.5 || aspect > 1.8) continue;               // banners, líneas
+                        let img;
+                        if (pl.fn === OPS.paintInlineImageXObject) {
+                            img = pl.ref;
+                        } else {
+                            if (seen.has(pl.ref)) continue;
+                            seen.add(pl.ref);
+                            const store = String(pl.ref).startsWith('g_') ? page.commonObjs : page.objs;
+                            img = await new Promise(resolve => {
+                                const timer = setTimeout(() => resolve(null), 4000);
+                                try { store.get(pl.ref, obj => { clearTimeout(timer); resolve(obj); }); }
+                                catch (e) { clearTimeout(timer); resolve(null); }
+                            });
+                        }
+                        if (!img || Math.min(img.width, img.height) < 80) continue;
+                        const canvas = imageObjectToCanvas(img);
+                        if (!canvas || !looksLikePhoto(canvas)) continue;
+                        const blob = await canvasToJpeg(canvas);
+                        if (!blob) continue;
+                        // Más puntos: forma de retrato (~0.75–1) y mayor tamaño en la página
+                        const score = (pl.w * pl.h) * (aspect >= 0.6 && aspect <= 1.05 ? 2 : 1);
+                        found.push({ blob, url: URL.createObjectURL(blob), score });
+                    }
+                    page.cleanup();
+                }
+            } finally {
+                pdf.destroy();
+            }
+            return found.sort((a, b) => b.score - a.score).slice(0, 6);
+        }
+
+        function resetCvPhoto(mode) {
+            cvScanId[mode]++; // cancela cualquier búsqueda en curso
+            pendingCvPhoto[mode] = null;
+            cvPhotoResults[mode].forEach(r => URL.revokeObjectURL(r.url));
+            cvPhotoResults[mode] = [];
+            const box = document.getElementById(mode + 'CvPhotos');
+            if (box) box.innerHTML = '';
+        }
+
+        function onManualPhotoSelected(mode) {
+            // Una foto subida manualmente tiene prioridad sobre la del CV
+            if (pendingCvPhoto[mode]) {
+                pendingCvPhoto[mode] = null;
+                document.querySelectorAll(`#${mode}CvPhotos .cv-photo-option`).forEach(el => el.classList.remove('selected'));
+                const status = document.getElementById(mode + 'CvPhotoStatus');
+                if (status) status.textContent = 'Se usará la foto que subiste manualmente.';
+            }
+        }
+
+        async function onCvSelected(mode, input) {
+            const file = input.files && input.files[0];
+            resetCvPhoto(mode);
+            if (!file) return;
+            const box = document.getElementById(mode + 'CvPhotos');
+            if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') {
+                box.innerHTML = 'La foto solo se puede tomar de CVs en PDF. Sube la foto manualmente.';
+                return;
+            }
+            await scanCvForPhoto(mode, await file.arrayBuffer());
+        }
+
+        async function scanCvForPhoto(mode, arrayBuffer) {
+            const box = document.getElementById(mode + 'CvPhotos');
+            box.innerHTML = 'Buscando foto en el CV…';
+            const scanId = ++cvScanId[mode];
+            let results;
+            try {
+                results = await extractPhotosFromPdf(arrayBuffer);
+            } catch (error) {
+                console.error(error);
+                if (scanId !== cvScanId[mode]) return;
+                box.innerHTML = 'No se pudo leer el PDF para buscar la foto. Sube la foto manualmente.';
+                return;
+            }
+            if (scanId !== cvScanId[mode]) { results.forEach(r => URL.revokeObjectURL(r.url)); return; }
+            cvPhotoResults[mode] = results;
+            if (results.length === 0) {
+                box.innerHTML = 'No se encontró una foto en el CV (puede no tener foto o estar escaneado). Sube la foto manualmente si la tienes.';
+                return;
+            }
+            box.innerHTML = `
+                <div id="${mode}CvPhotoStatus">${results.length === 1 ? 'Se encontró esta imagen en el CV. ¿Usarla como foto de perfil?' : 'Se encontraron estas imágenes en el CV. Elige la foto de perfil:'}</div>
+                <div class="cv-photo-grid">
+                    ${results.map((r, i) => `<div class="cv-photo-option" onclick="chooseCvPhoto('${mode}', ${i})"><img src="${r.url}" alt="">Usar</div>`).join('')}
+                </div>`;
+        }
+
+        function chooseCvPhoto(mode, index) {
+            const result = cvPhotoResults[mode][index];
+            if (!result) return;
+            pendingCvPhoto[mode] = result.blob;
+            const manual = document.getElementById(mode === 'new' ? 'newPhoto' : 'editPhoto');
+            if (manual) manual.value = '';
+            document.querySelectorAll(`#${mode}CvPhotos .cv-photo-option`).forEach((el, i) => {
+                el.classList.toggle('selected', i === index);
+                el.lastChild.textContent = i === index ? '✓ Elegida' : 'Usar';
+            });
+            const status = document.getElementById(mode + 'CvPhotoStatus');
+            if (status) status.innerHTML = '<span class="cv-photo-ok">✓ Esta foto se guardará como foto de perfil.</span>';
+        }
+
+        async function takePhotoFromSavedCv() {
+            const candidate = window.currentCandidates.find(c => c.id === window.currentEditDocId);
+            const box = document.getElementById('editCvPhotos');
+            resetCvPhoto('edit');
+            if (!candidate || !candidate.cvUrl) return;
+            if (!/\.pdf(\?|$)/i.test(decodeURIComponent(candidate.cvUrl.split('?')[0]))) {
+                box.innerHTML = 'El CV guardado no es PDF; la foto solo se puede tomar de CVs en PDF.';
+                return;
+            }
+            box.innerHTML = 'Descargando el CV…';
+            let buffer;
+            try {
+                const response = await fetch(candidate.cvUrl);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                buffer = await response.arrayBuffer();
+            } catch (error) {
+                console.error(error);
+                box.innerHTML = 'No se pudo descargar el CV guardado (falta la configuración CORS del Storage). Mientras tanto, vuelve a seleccionar el archivo del CV arriba y la foto se buscará automáticamente.';
+                return;
+            }
+            await scanCvForPhoto('edit', buffer);
+        }
+
         // Scorecard original (Gerente de Operaciones). Se usa para vacantes creadas antes de los scorecards por vacante.
         const DEFAULT_CRITERIA = ['Operaciones Boutique', 'Inglés Fluido', 'Gestión Limpieza', 'PMS/Tecnología', 'Liderazgo', 'Estándares Servicio', 'Resolución Problemas', 'Control Presupuesto'];
         const MAX_CRITERIA = 15;
@@ -1499,13 +1745,14 @@
                     <div class="form-row full">
                         <div class="form-group">
                             <label>Foto de perfil</label>
-                            <input type="file" id="newPhoto" accept="image/*">
+                            <input type="file" id="newPhoto" accept="image/*" onchange="onManualPhotoSelected('new')">
                         </div>
                     </div>
                     <div class="form-row full">
                         <div class="form-group">
                             <label>CV (PDF, DOC, DOCX)</label>
-                            <input type="file" id="newCV" accept=".pdf,.doc,.docx">
+                            <input type="file" id="newCV" accept=".pdf,.doc,.docx" onchange="onCvSelected('new', this)">
+                            <div id="newCvPhotos" class="cv-photos"></div>
                         </div>
                     </div>
                     <button class="btn btn-primary" onclick="addCandidate()">Agregar candidato</button>
@@ -1811,6 +2058,10 @@
             document.getElementById('editRound').value = candidate.round || 'round1';
             document.getElementById('editPhoto').value = '';
             document.getElementById('editCV').value = '';
+            resetCvPhoto('edit');
+            if (candidate.cvUrl) {
+                document.getElementById('editCvPhotos').innerHTML = '<button class="btn-small" type="button" onclick="takePhotoFromSavedCv()">Tomar foto del CV guardado</button>';
+            }
 
             window.currentEditDocId = docId;
             closeModal();
@@ -1821,14 +2072,16 @@
             try {
                 let photoUrl = '';
                 let cvUrl = '';
-                const photoFile = document.getElementById('editPhoto').files[0];
+                const manualPhoto = document.getElementById('editPhoto').files[0];
+                const photoFile = manualPhoto || pendingCvPhoto.edit;
+                const photoName = manualPhoto ? manualPhoto.name : 'foto_del_cv.jpg';
                 const cvFile = document.getElementById('editCV').files[0];
                 
                 const candidate = window.currentCandidates.find(c => c.id === window.currentEditDocId);
 
                 if (photoFile) {
-                    const photoRef = storage.ref().child(`candidates/photos/${Date.now()}_${photoFile.name}`);
-                    await photoRef.put(photoFile);
+                    const photoRef = storage.ref().child(`candidates/photos/${Date.now()}_${photoName}`);
+                    await photoRef.put(photoFile, { contentType: photoFile.type || 'image/jpeg' });
                     photoUrl = await photoRef.getDownloadURL();
                     if (candidate.photoUrl) await deleteStorageFile(candidate.photoUrl).catch(() => {});
                 } else {
@@ -1897,12 +2150,14 @@
             try {
                 let photoUrl = '';
                 let cvUrl = '';
-                const photoFile = document.getElementById('newPhoto').files[0];
+                const manualPhoto = document.getElementById('newPhoto').files[0];
+                const photoFile = manualPhoto || pendingCvPhoto.new;
+                const photoName = manualPhoto ? manualPhoto.name : 'foto_del_cv.jpg';
                 const cvFile = document.getElementById('newCV').files[0];
                 
                 if (photoFile) {
-                    const photoRef = storage.ref().child(`candidates/photos/${Date.now()}_${photoFile.name}`);
-                    await photoRef.put(photoFile);
+                    const photoRef = storage.ref().child(`candidates/photos/${Date.now()}_${photoName}`);
+                    await photoRef.put(photoFile, { contentType: photoFile.type || 'image/jpeg' });
                     photoUrl = await photoRef.getDownloadURL();
                 }
 
@@ -1982,6 +2237,7 @@
                 document.getElementById('newStatus').value = 'activo';
                 document.getElementById('newCV').value = '';
                 document.getElementById('newPhoto').value = '';
+                resetCvPhoto('new');
 
                 loadVacancyDashboard(window.currentVacancy);
             } catch (error) {
