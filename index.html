@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -165,6 +164,15 @@
         .notice { padding: 14px 18px; margin-bottom: 28px; font-size: 13px; line-height: 1.6; border-left: 3px solid #9c523d; background: #f7f5f2; color: #444; }
         .notice.warn { border-left-color: #b8523d; background: #fff4f0; }
         .notice .btn { margin-top: 10px; }
+        .criteria-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .criteria-row { display: flex; gap: 8px; align-items: center; }
+        .criteria-row .num { width: 26px; height: 26px; flex: 0 0 26px; border-radius: 50%; background: #9c523d; color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .criteria-row input { flex: 1; padding: 10px 12px; border: 1px solid #e8dfd7; font-family: 'Lora', serif; font-size: 13px; background: #fdfbf8; }
+        .criteria-row button { background: none; border: 1px solid #e8dfd7; color: #b8523d; width: 34px; height: 38px; cursor: pointer; font-size: 14px; }
+        .criteria-row button:disabled { color: #ccc; cursor: default; }
+        .criteria-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+        .criteria-toolbar select { padding: 9px 10px; border: 1px solid #e8dfd7; font-family: 'Lora', serif; font-size: 12px; background: #fdfbf8; }
+        .criteria-hint { font-size: 11px; color: #999; line-height: 1.5; }
         .card-notes { background: #f7f5f2; border-left: 3px solid #9c523d; padding: 10px 12px; margin: 12px 0 4px; font-size: 12px; color: #444; line-height: 1.5; }
         .card-notes-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; color: #9c523d; text-transform: uppercase; margin-bottom: 4px; }
         .card-notes-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; }
@@ -465,10 +473,44 @@
                     </div>
                 </div>
                 <p style="font-size: 11px; color: #999; margin-top: 10px;">El URL se generará automáticamente desde el nombre.</p>
+                <div class="form-section" style="margin-top: 30px; padding-top: 26px; border-top: 1px solid #f0ebe5;">
+                    <h3 style="margin-bottom: 8px;">SCORECARD</h3>
+                    <p class="criteria-hint" style="margin-bottom: 16px;">Criterios que los entrevistadores calificarán del 1 al 5 para esta vacante.</p>
+                    <div class="criteria-toolbar">
+                        <select id="createCriteriaTemplate"></select>
+                        <button class="btn-small" onclick="applyCriteriaTemplate('create')">Cargar</button>
+                    </div>
+                    <div id="createCriteriaList" class="criteria-list"></div>
+                    <button class="btn-small" onclick="addCriterion('create')">+ Agregar criterio</button>
+                </div>
             </div>
             <div style="display: flex; gap: 15px; padding: 25px 40px; border-top: 1px solid #f0ebe5;">
                 <button class="btn btn-secondary" onclick="closeCreateVacancyModal()">Cancelar</button>
                 <button class="btn btn-primary" onclick="saveVacancy()">Crear vacante</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Scorecard Modal -->
+    <div id="scorecardModal" class="modal">
+        <div class="modal-content" style="max-width: 620px;">
+            <button class="close-btn" onclick="closeScorecardModal()">✕</button>
+            <div class="modal-header">
+                <h2>Editar scorecard</h2>
+                <p id="scorecardVacancyName"></p>
+            </div>
+            <div class="modal-body">
+                <div class="criteria-toolbar">
+                    <select id="editCriteriaTemplate"></select>
+                    <button class="btn-small" onclick="applyCriteriaTemplate('edit')">Cargar</button>
+                </div>
+                <div id="editCriteriaList" class="criteria-list"></div>
+                <button class="btn-small" onclick="addCriterion('edit')">+ Agregar criterio</button>
+                <div class="notice warn" id="scorecardWarning" style="margin-top: 22px; margin-bottom: 0; display: none;"></div>
+            </div>
+            <div style="display: flex; gap: 15px; padding: 25px 40px; border-top: 1px solid #f0ebe5;">
+                <button class="btn btn-secondary" onclick="closeScorecardModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveScorecard()">Guardar scorecard</button>
             </div>
         </div>
     </div>
@@ -527,7 +569,133 @@
         const RETENTION_MONTHS = 3;
         const WARNING_DAYS = 7;
         
-        const competencies = ['Operaciones Boutique', 'Inglés Fluido', 'Gestión Limpieza', 'PMS/Tecnología', 'Liderazgo', 'Estándares Servicio', 'Resolución Problemas', 'Control Presupuesto'];
+        // Scorecard original (Gerente de Operaciones). Se usa para vacantes creadas antes de los scorecards por vacante.
+        const DEFAULT_CRITERIA = ['Operaciones Boutique', 'Inglés Fluido', 'Gestión Limpieza', 'PMS/Tecnología', 'Liderazgo', 'Estándares Servicio', 'Resolución Problemas', 'Control Presupuesto'];
+        const MAX_CRITERIA = 15;
+        const criteriaDraft = { create: [], edit: [] };
+
+        function getCriteria(vacancy) {
+            return vacancy && Array.isArray(vacancy.criteria) && vacancy.criteria.length > 0 ? vacancy.criteria : DEFAULT_CRITERIA;
+        }
+
+        function currentCriteria() {
+            return getCriteria(window.currentVacancyDoc);
+        }
+
+        function fillTemplateSelect(selectId, excludeId) {
+            const options = ['<option value="">Copiar criterios de…</option>', '<option value="__blank">— En blanco —</option>', '<option value="__default">Gerente de Operaciones (original)</option>'];
+            vacancies.filter(v => v.id !== excludeId).forEach(v => {
+                options.push(`<option value="${v.id}">${escapeHtml(v.name)} (${getCriteria(v).length})</option>`);
+            });
+            document.getElementById(selectId).innerHTML = options.join('');
+        }
+
+        function renderCriteriaEditor(mode) {
+            const list = criteriaDraft[mode];
+            const container = document.getElementById(mode + 'CriteriaList');
+            if (list.length === 0) {
+                container.innerHTML = '<div class="criteria-hint">Sin criterios todavía. Agrega al menos uno.</div>';
+                return;
+            }
+            container.innerHTML = list.map((c, i) => `
+                <div class="criteria-row">
+                    <div class="num">${i + 1}</div>
+                    <input type="text" value="${escapeHtml(c)}" maxlength="60" placeholder="ej: Trabajo bajo presión" oninput="criteriaDraft['${mode}'][${i}] = this.value">
+                    <button title="Subir" onclick="moveCriterion('${mode}', ${i}, -1)" ${i === 0 ? 'disabled' : ''}>↑</button>
+                    <button title="Bajar" onclick="moveCriterion('${mode}', ${i}, 1)" ${i === list.length - 1 ? 'disabled' : ''}>↓</button>
+                    <button title="Quitar" onclick="removeCriterion('${mode}', ${i})">✕</button>
+                </div>`).join('');
+        }
+
+        function addCriterion(mode) {
+            if (criteriaDraft[mode].length >= MAX_CRITERIA) {
+                alert(`Máximo ${MAX_CRITERIA} criterios.`);
+                return;
+            }
+            criteriaDraft[mode].push('');
+            renderCriteriaEditor(mode);
+            const inputs = document.querySelectorAll(`#${mode}CriteriaList input`);
+            if (inputs.length) inputs[inputs.length - 1].focus();
+        }
+
+        function removeCriterion(mode, i) {
+            criteriaDraft[mode].splice(i, 1);
+            renderCriteriaEditor(mode);
+        }
+
+        function moveCriterion(mode, i, dir) {
+            const list = criteriaDraft[mode];
+            const j = i + dir;
+            if (j < 0 || j >= list.length) return;
+            [list[i], list[j]] = [list[j], list[i]];
+            renderCriteriaEditor(mode);
+        }
+
+        function applyCriteriaTemplate(mode) {
+            const value = document.getElementById(mode + 'CriteriaTemplate').value;
+            if (!value) return;
+            const hasContent = criteriaDraft[mode].some(c => c.trim());
+            if (hasContent && !confirm('Esto reemplaza los criterios actuales de la lista. ¿Continuar?')) return;
+            if (value === '__blank') criteriaDraft[mode] = [''];
+            else if (value === '__default') criteriaDraft[mode] = [...DEFAULT_CRITERIA];
+            else criteriaDraft[mode] = [...getCriteria(vacancies.find(v => v.id === value))];
+            renderCriteriaEditor(mode);
+        }
+
+        // Devuelve la lista limpia o null si no es válida (muestra el motivo)
+        function cleanCriteria(mode) {
+            const cleaned = criteriaDraft[mode].map(c => c.trim().replace(/\s+/g, ' ')).filter(Boolean);
+            if (cleaned.length === 0) {
+                alert('Agrega al menos un criterio al scorecard.');
+                return null;
+            }
+            const seen = new Set();
+            for (const c of cleaned) {
+                const key = c.toLowerCase();
+                if (seen.has(key)) {
+                    alert(`El criterio "${c}" está repetido.`);
+                    return null;
+                }
+                seen.add(key);
+            }
+            return cleaned;
+        }
+
+        function openScorecardModal() {
+            const vacancy = window.currentVacancyDoc;
+            if (!vacancy) return;
+            criteriaDraft.edit = [...getCriteria(vacancy)];
+            document.getElementById('scorecardVacancyName').textContent = vacancy.name;
+            fillTemplateSelect('editCriteriaTemplate', vacancy.id);
+            renderCriteriaEditor('edit');
+            const rated = (window.currentCandidates || []).filter(c => c.ratings && Object.keys(c.ratings).length > 0).length;
+            const warning = document.getElementById('scorecardWarning');
+            if (rated > 0) {
+                warning.style.display = 'block';
+                warning.innerHTML = `${rated} candidato(s) ya tienen evaluaciones. Si cambias el nombre de un criterio o lo quitas, sus calificaciones anteriores de ese criterio dejan de contar en el promedio (se conservan y se ven en el perfil como "criterio anterior"). Agregar criterios nuevos no afecta las evaluaciones existentes.`;
+            } else {
+                warning.style.display = 'none';
+            }
+            document.getElementById('scorecardModal').classList.add('active');
+        }
+
+        function closeScorecardModal() {
+            document.getElementById('scorecardModal').classList.remove('active');
+        }
+
+        async function saveScorecard() {
+            const vacancy = window.currentVacancyDoc;
+            const cleaned = cleanCriteria('edit');
+            if (!vacancy || !cleaned) return;
+            try {
+                await db.collection('vacancies').doc(vacancy.id).update({ criteria: cleaned });
+                closeScorecardModal();
+                await loadVacancies();
+                router();
+            } catch (error) {
+                alert('Error al guardar el scorecard: ' + error.message);
+            }
+        }
         
         const firebaseConfig = {
             apiKey: "AIzaSyDNzqc4jZOl5LStJkAQkwL3kwPgNf5vScU",
@@ -569,6 +737,9 @@
         function openCreateVacancyModal() {
             document.getElementById('createVacancyModal').classList.add('active');
             document.getElementById('vacancyName').value = '';
+            criteriaDraft.create = [''];
+            fillTemplateSelect('createCriteriaTemplate', null);
+            renderCriteriaEditor('create');
         }
 
         function closeCreateVacancyModal() {
@@ -583,6 +754,9 @@
                 return;
             }
 
+            const criteria = cleanCriteria('create');
+            if (!criteria) return;
+
             // Generar slug automáticamente desde el nombre
             const slug = name
                 .toLowerCase()
@@ -594,6 +768,7 @@
                     name: name,
                     slug: slug,
                     status: 'abierta',
+                    criteria: criteria,
                     createdAt: new Date()
                 });
 
@@ -1090,10 +1265,11 @@
                 banner.className = 'notice warn';
                 banner.innerHTML = `Vacante cerrada el ${formatDate(vacancy.closedAt)}. ${hiredText} ${retention}
                     ${vacancy.closeNote ? `<br>Nota: ${escapeHtml(vacancy.closeNote)}` : ''}
-                    <br><button class="btn btn-secondary" onclick="reopenVacancy('${vacancy.id}')">Reabrir vacante</button>`;
+                    <br><button class="btn btn-secondary" onclick="reopenVacancy('${vacancy.id}')">Reabrir vacante</button>
+                    <button class="btn btn-secondary" onclick="openScorecardModal()">Editar scorecard (${getCriteria(vacancy).length})</button>`;
             } else {
                 banner.style.cssText = 'text-align: right; margin-bottom: 24px;';
-                banner.innerHTML = `<button class="btn btn-secondary" onclick="openCloseVacancyModal('${vacancy.id}')">Cerrar vacante</button>`;
+                banner.innerHTML = `<button class="btn btn-secondary" onclick="openScorecardModal()" style="margin-right: 10px;">Editar scorecard (${getCriteria(vacancy).length})</button><button class="btn btn-secondary" onclick="openCloseVacancyModal('${vacancy.id}')">Cerrar vacante</button>`;
             }
             const mainContent = document.getElementById('mainContent');
             mainContent.insertBefore(banner, mainContent.firstChild);
@@ -1371,9 +1547,11 @@
 
         function calculateAverage(ratings) {
             if (!ratings || Object.keys(ratings).length === 0) return '—';
+            const criteria = currentCriteria();
             let total = 0, count = 0;
             Object.values(ratings).forEach(rater => {
-                Object.values(rater).forEach(score => {
+                criteria.forEach(crit => {
+                    const score = rater[crit];
                     if (typeof score === 'number') {
                         total += score;
                         count++;
@@ -1400,12 +1578,18 @@
                 ratingsHTML = '<div class="detail-section"><div class="detail-label">Evaluaciones por rater</div><div class="ratings-grid">';
                 Object.entries(candidate.ratings).forEach(([rater, scores]) => {
                     let scoresList = '';
-                    competencies.forEach(comp => {
+                    const criteria = currentCriteria();
+                    criteria.forEach(comp => {
                         if (scores[comp]) {
-                            scoresList += `${comp}: <strong>${scores[comp]}</strong><br>`;
+                            scoresList += `${escapeHtml(comp)}: <strong>${scores[comp]}</strong><br>`;
                         }
                     });
-                    ratingsHTML += `<div class="rating-item"><div class="rating-rater">${rater}</div><div class="rating-scores">${scoresList}</div></div>`;
+                    Object.entries(scores).forEach(([comp, value]) => {
+                        if (!criteria.includes(comp) && typeof value === 'number') {
+                            scoresList += `<span style="color: #aaa;">${escapeHtml(comp)} (criterio anterior): ${value}</span><br>`;
+                        }
+                    });
+                    ratingsHTML += `<div class="rating-item"><div class="rating-rater">${escapeHtml(rater)}</div><div class="rating-scores">${scoresList}</div></div>`;
                 });
                 ratingsHTML += '</div></div>';
             }
@@ -1521,19 +1705,22 @@
         }
 
         function openRating(docId, name) {
-            const raterName = prompt('Ingrese su nombre para guardar la evaluación:');
+            const defaultName = auth && auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : '';
+            const raterName = (prompt('Ingrese su nombre para guardar la evaluación:', defaultName) || '').trim();
             if (!raterName) return;
 
+            const criteria = currentCriteria();
+            window.currentRatingCriteria = criteria;
             let html = '';
-            competencies.forEach((comp, idx) => {
+            criteria.forEach((comp, idx) => {
                 html += `
                     <div style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #f0ebe5;">
                         <div style="font-size: 12px; font-weight: 700; color: #2d2d2d; margin-bottom: 14px; display: flex; align-items: center; gap: 10px;">
                             <div style="background: #9c523d; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">${idx + 1}</div>
-                            ${comp}
+                            ${escapeHtml(comp)}
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;" id="rating-${idx}">
-                            ${[1,2,3,4,5].map(n => `<button class="rating-btn" onclick="setRatingValue('${comp}', ${n}, ${idx})" style="padding: 11px 8px; background: #f5f0e8; border: 1px solid #ddd; cursor: pointer; font-weight: 700; color: #888; font-family: 'Bitter', serif; font-size: 13px;">${n}</button>`).join('')}
+                            ${[1,2,3,4,5].map(n => `<button class="rating-btn" onclick="setRatingValue(this, ${n}, ${idx})" style="padding: 11px 8px; background: #f5f0e8; border: 1px solid #ddd; cursor: pointer; font-weight: 700; color: #888; font-family: 'Bitter', serif; font-size: 13px;">${n}</button>`).join('')}
                         </div>
                     </div>
                 `;
@@ -1548,16 +1735,17 @@
             document.getElementById('ratingModal').classList.add('active');
         }
 
-        function setRatingValue(competency, rating, idx) {
+        function setRatingValue(button, rating, idx) {
+            const competency = window.currentRatingCriteria[idx];
             const container = document.getElementById(`rating-${idx}`);
             container.querySelectorAll('.rating-btn').forEach(btn => {
                 btn.style.background = '#f5f0e8';
                 btn.style.color = '#888';
                 btn.style.borderColor = '#ddd';
             });
-            event.target.style.background = '#9c523d';
-            event.target.style.color = 'white';
-            event.target.style.borderColor = '#9c523d';
+            button.style.background = '#9c523d';
+            button.style.color = 'white';
+            button.style.borderColor = '#9c523d';
             window.currentRatings[competency] = rating;
         }
 
@@ -1571,7 +1759,8 @@
                 const ref = db.collection('candidates').doc(window.currentRatingDocId);
                 const doc = await ref.get();
                 const ratings = doc.data().ratings || {};
-                ratings[window.currentRatingRaterName] = window.currentRatings;
+                // Conserva calificaciones previas del mismo evaluador en criterios que ya no están en la lista
+                ratings[window.currentRatingRaterName] = { ...(ratings[window.currentRatingRaterName] || {}), ...window.currentRatings };
                 await ref.update({ ratings });
                 closeRatingModal();
                 loadVacancyDashboard(window.currentVacancy);
